@@ -11,20 +11,23 @@
 <body>
   <main> 
     
-    <div class="introducao"> 
+    <div class="menu"> 
       <h1>Escalonador de Processos</h1>
       <p>Simulador de um escalonador de processos desenvolvido para a disciplina de Sistemas Operacionais na Universidade Federal Fluminense. </p>
-      <input type="file">
-      <button onclick="changeState()">Começar</button>
+      <input id="input" type="file">
+      <div id="output"></div>
+      <button onclick="start()">Começar</button>
     </div>
 
-    <div class="simulador invisivel">
+    <div class="simulator hidden">
       <p>teste</p>
 
-      <button onclick="changeState()">Começar</button>
+      <button onclick="finish()">Terminar simulação</button>
+      <button onclick="menu()">Voltar para o menu</button>
+      
     </div>
   </main>
 
-<script src="js/teste.js"></script>
+<script src="js/index.js"></script>
 </body>
 </html>
