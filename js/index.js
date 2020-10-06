@@ -25,7 +25,6 @@ function menu() {
 
 function fillProcesses(text) {
   processes = text.split("\n");
-  processes.pop();
 }
 
 document.getElementById('input').addEventListener('change', function() { 
@@ -33,9 +32,8 @@ document.getElementById('input').addEventListener('change', function() {
   let outputText = "";
   fr.onload=function(){ 
     fillProcesses(fr.result);
-    console.log(processes)
     for (i=0; i < processes.length; i++) {
-      outputText += `Processo ${i}: ${processes[i]}<br>`
+      outputText += `Processo ${i}: ${processes[i]}<br>`;
     }
     document.getElementById('output').innerHTML=outputText;
   } 
