@@ -16,6 +16,7 @@ main {
   background-color: olive;
   padding: 20px;
   box-sizing: border-box;
+  position: relative;
 }
 
 .menu {
@@ -30,6 +31,12 @@ main {
   margin: 10px;
   height: 36px;
   width: 242px;
+  position: absolute;
+  bottom: 0;
+}
+
+.menu h2 {
+  margin-bottom: 5px;
 }
 
 .simulator {
@@ -43,4 +50,8 @@ main {
 
 #output {
   margin-top: 10px;
+  overflow-y: scroll;
+  max-height: 200px;
+  padding: 0;
+  background-color: rgba(0, 0, 0, 0.1);
 }
