@@ -1,5 +1,6 @@
 const menuDiv = document.querySelector('.menu');
 const simulatorDiv = document.querySelector('.simulator');
+const outputDiv = document.getElementById('output');
 
 var processes = [];
 var time = 0;
@@ -29,14 +30,13 @@ function fillProcesses(text) {
 
 document.getElementById('input').addEventListener('change', function() { 
   var fr=new FileReader(); 
-  let outputText = "";
   fr.onload=function(){ 
     fillProcesses(fr.result);
     for (i=0; i < processes.length; i++) {
-      outputText += `Processo ${i}: ${processes[i]}<br>`;
+      outputDiv.innerHTML += `Processo ${i}: ${processes[i]}<br>`;
     }
-    document.getElementById('output').innerHTML=outputText;
   } 
+  outputDiv.classList.remove('hidden');
     
   fr.readAsText(this.files[0]); 
 })
