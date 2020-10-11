@@ -50,8 +50,8 @@ main {
 
 #output {
   margin-top: 10px;
-  overflow-y: scroll;
-  max-height: 200px;
-  padding: 0;
+  overflow-y: auto;
+  max-height: 210px;
+  padding: 5px 10px;
   background-color: rgba(0, 0, 0, 0.1);
 }

@@ -1,5 +1,6 @@
 const menuDiv = document.querySelector('.menu');
 const simulatorDiv = document.querySelector('.simulator');
+const outputDiv = document.getElementById('output');
 
 var CPU1, CPU2, CPU3, CPU4;
 var simulatorTime = 0;
@@ -64,8 +65,8 @@ document.getElementById('input').addEventListener('change', function() {
   var fr=new FileReader(); 
   fr.onload=function(){ 
     fillProcesses(fr.result);
-    console.log(processes);
   } 
+  outputDiv.classList.remove('hidden');
     
   fr.readAsText(this.files[0]); 
 });
