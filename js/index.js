@@ -1,12 +1,16 @@
 const menuDiv = document.querySelector('.menu');
 const simulatorDiv = document.querySelector('.simulator');
 
+var CPU1, CPU2, CPU3, CPU4;
+var simulatorTime = 0;
 var processes = [];
-var time = 0;
 
 function start() {
   toggleClasses();
-  initialize();
+  setInterval(() => {
+    document.querySelector(".simulator").textContent = simulatorTime;
+    simulatorTime += 1;
+  }, 1000);
 }
 
 function toggleClasses() {
@@ -25,20 +29,43 @@ function menu() {
 
 function fillProcesses(text) {
   processes = text.split("\n");
-  processes.pop();
+  processes.pop();  
+
+  // Exibindo a lista de processos na tela
+  let outputText = "";
+  for (i=0; i < processes.length; i++) {
+    outputText += `Processo ${i}: ${processes[i]}<br>`
+  }
+  document.getElementById('output').innerHTML=outputText;
+  
+  // Transformando os processos de listas para objetos (facilita a leitura)
+  for(i=0;i<processes.length;i++) {
+    processes[i] = processes[i].replaceAll(" ", "");
+    processes[i] = processes[i].split(',');
+    processes[i] = {
+      arrivalTime: parseInt(processes[i][0]),
+      priority: parseInt(processes[i][1]),
+      processorTime: parseInt(processes[i][2]),
+      mBytes: parseInt(processes[i][3]),
+      printer: parseInt(processes[i][4]),
+      disk: parseInt(processes[i][5])
+    }
+  }
+
+  // Ordenando os processos por arrivalTime
+  processes.sort((a, b) => {
+    return a.arrivalTime - b.arrivalTime;
+  })
+
+  console.log(processes);
 }
 
 document.getElementById('input').addEventListener('change', function() { 
   var fr=new FileReader(); 
-  let outputText = "";
   fr.onload=function(){ 
     fillProcesses(fr.result);
-    console.log(processes)
-    for (i=0; i < processes.length; i++) {
-      outputText += `Processo ${i}: ${processes[i]}<br>`
-    }
-    document.getElementById('output').innerHTML=outputText;
+    console.log(processes);
   } 
     
   fr.readAsText(this.files[0]); 
-})
+});
