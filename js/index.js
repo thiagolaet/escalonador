@@ -9,9 +9,9 @@ var processes = [];
 function start() {
   toggleClasses();
   setInterval(() => {
-    document.querySelector(".simulator").textContent = simulatorTime;
+    document.querySelector('.simulator').textContent = simulatorTime;
     simulatorTime += 1;
-  }, 1000);
+  }, 2000);
 }
 
 function toggleClasses() {
@@ -28,12 +28,13 @@ function menu() {
   toggleClasses();
 }
 
+// Preenche a lista de objetos processos e atualiza o output
 function fillProcesses(text) {
-  processes = text.split("\n");
+  processes = text.split('\n');
   processes.pop();  
 
   // Exibindo a lista de processos na tela
-  let outputText = "";
+  let outputText = '';
   for (i=0; i < processes.length; i++) {
     outputText += `Processo ${i}: ${processes[i]}<br>`
   }
@@ -41,7 +42,7 @@ function fillProcesses(text) {
   
   // Transformando os processos de listas para objetos (facilita a leitura)
   for(i=0;i<processes.length;i++) {
-    processes[i] = processes[i].replaceAll(" ", "");
+    processes[i] = processes[i].replaceAll(' ', '');
     processes[i] = processes[i].split(',');
     processes[i] = {
       arrivalTime: parseInt(processes[i][0]),
@@ -61,6 +62,7 @@ function fillProcesses(text) {
   console.log(processes);
 }
 
+// Altera a lista de processos quando é recebido um input de arquivo
 document.getElementById('input').addEventListener('change', function() { 
   var fr=new FileReader(); 
   fr.onload=function(){ 
