@@ -1,11 +1,16 @@
 const menuDiv = document.querySelector('.menu');
 const simulatorDiv = document.querySelector('.simulator');
 const outputDiv = document.getElementById('output');
+const fileInput = document.getElementById('input');
 
 var CPU1, CPU2, CPU3, CPU4;
 var simulatorTime = 0;
 var processes = [];
+var ready1 = [];
+var ready2 = [];
+var ready3 = [];
 
+// Inicia o simulador
 function start() {
   toggleClasses();
   setInterval(() => {
@@ -14,34 +19,35 @@ function start() {
   }, 2000);
 }
 
+// Altera entre a visualização do menu e do simulador
 function toggleClasses() {
   menuDiv.classList.toggle('hidden');
   simulatorDiv.classList.toggle('hidden');
 }
 
+// Força a terminação da simulação atual
 function finish() {
 
 }
 
+// Termina a simulação atual e retorna ao menu
 function menu() {
   finish();
   toggleClasses();
 }
 
-// Preenche a lista de objetos processos e atualiza o output
+// Preenche a lista de objetos processos e atualiza o output relativo a eles no menu
 function fillProcesses(text) {
-  processes = text.split('\n');
-  processes.pop();  
 
-  // Exibindo a lista de processos na tela
+  // Filtrando o input recebido pelo arquivo de texto
+  processes = text.split('\n').filter((e) => e.length >= 6);
+
+  // Inicializando a string que irá receber o texto para o output
   let outputText = '';
-  for (i=0; i < processes.length; i++) {
-    outputText += `Processo ${i}: ${processes[i]}<br>`
-  }
-  document.getElementById('output').innerHTML=outputText;
   
-  // Transformando os processos de listas para objetos (facilita a leitura)
+  // Transformando os processos de listas para objetos (facilita a leitura) e concatenando a string de output
   for(i=0;i<processes.length;i++) {
+    outputText += `Processo ${i}: ${processes[i]}<br>`
     processes[i] = processes[i].replaceAll(' ', '');
     processes[i] = processes[i].split(',');
     processes[i] = {
@@ -54,6 +60,9 @@ function fillProcesses(text) {
     }
   }
 
+  // Atualizando a string de output
+  outputDiv.innerHTML=outputText;
+
   // Ordenando os processos por arrivalTime
   processes.sort((a, b) => {
     return a.arrivalTime - b.arrivalTime;
@@ -63,7 +72,7 @@ function fillProcesses(text) {
 }
 
 // Altera a lista de processos quando é recebido um input de arquivo
-document.getElementById('input').addEventListener('change', function() { 
+fileInput.addEventListener('change', function() { 
   var fr=new FileReader(); 
   fr.onload=function(){ 
     fillProcesses(fr.result);
