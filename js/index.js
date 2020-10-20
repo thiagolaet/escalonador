@@ -2,6 +2,8 @@ const menuDiv = document.querySelector('.menu');
 const simulatorDiv = document.querySelector('.simulator');
 const outputDiv = document.getElementById('output');
 const fileInput = document.getElementById('input');
+const timer = document.getElementById('timer');
+const ready1Output = document.getElementById('ready1');
 
 var CPU1, CPU2, CPU3, CPU4;
 var simulatorTime = 0;
@@ -14,9 +16,35 @@ var ready3 = [];
 function start() {
   toggleClasses();
   setInterval(() => {
-    document.querySelector('.simulator').textContent = simulatorTime;
+    if (processes.length > 0) checkProcesses();
+    
+    // Atualizando o timer
+    timer.textContent = `Tempo: ${simulatorTime}`;
     simulatorTime += 1;
-  }, 2000);
+    console.log(processes);
+    console.log(ready1);
+
+    updateReady();
+  }, 1000);
+}
+
+// Compara os tempos de chegada do array de processos com o tempo atual do simulador e adiciona esses processos na lista de prontos
+function checkProcesses() {
+  while (processes[0].arrivalTime <= simulatorTime) {
+    ready1.push(processes[0]);
+    processes.shift();
+  }
+}
+
+// Atualiza as filas de pronto
+function updateReady() {
+  ready1Output.innerHTML = '';
+  ready1.forEach(e => {
+    let li = document.createElement('li');
+    li.classList.add('readyItem')
+    li.textContent = e.name;
+    ready1Output.appendChild(li);
+  });
 }
 
 // Altera entre a visualização do menu e do simulador
@@ -51,6 +79,7 @@ function fillProcesses(text) {
     processes[i] = processes[i].replaceAll(' ', '');
     processes[i] = processes[i].split(',');
     processes[i] = {
+      name: `P${i}`,
       arrivalTime: parseInt(processes[i][0]),
       priority: parseInt(processes[i][1]),
       processorTime: parseInt(processes[i][2]),

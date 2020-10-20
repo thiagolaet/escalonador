@@ -12,7 +12,6 @@ body {
 main {
   align-self: center;
   width: 800px;
-  height: 460px;
   background-color: olive;
   padding: 20px;
   box-sizing: border-box;
@@ -21,7 +20,7 @@ main {
 
 .menu {
   width: 100%;
-  height: 100%;
+  height: 400px;
   display: flex;
   flex-direction: column;
 }
@@ -54,4 +53,104 @@ main {
   max-height: 210px;
   padding: 5px 10px;
   background-color: rgba(0, 0, 0, 0.1);
+}
+
+#timer {
+  text-align: center;
+  margin-top: 0;
+}
+
+.view {
+  box-sizing: border-box;
+  padding: 15px;
+  width: 100%;
+  min-height: 300px;
+  margin-bottom: 10px;
+  background-color: white;
+  display: flex;
+  justify-content: space-between;
+}
+
+.cpu {
+  width: 150px;
+  height: 150px;
+  border: 1px solid black;
+  padding: 5px;
+  box-sizing: border-box;
+  position: relative;
+  align-self: center;
+}
+
+.cpu div {
+  width: 60px;
+  height: 60px;
+  margin: 5px;
+  box-sizing: border-box;
+  padding: 5px;
+  border: 1px solid black;
+  background-color: coral;
+  position: absolute;
+}
+
+.cpu span {
+  font-weight: bold;
+  text-align: center;
+}
+
+#cpu1 {
+  top: 5px;
+  left: 5px;
+}
+
+#cpu2 {
+  top: 5px; 
+  right: 5px;
+}
+
+#cpu3 {
+  bottom: 5px;
+  left: 5px;
+}
+
+#cpu4 {
+  bottom: 5px;
+  right: 5px;
+}
+
+.ready {
+  display: flex;
+  flex-direction: row;
+}
+
+.ready div {
+  margin-right: 10px;
+  padding: 5px;
+  border: 1px solid black;
+}
+
+.readyItem {
+  border: 1px solid black;
+  margin: 0;
+  text-decoration: none;
+  width: 40px;
+  height: 40px;
+  text-align: center;
+  line-height: 40px;
+  padding: 0;
+  background-color: cadetblue;
+  align-self: center;
+}
+
+.ready h4 {
+  margin: 0;
+  padding-bottom: 5px;
+  text-align: center;
+}
+
+.ready ul {
+  display: flex;
+  flex-direction: column;
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
 }
