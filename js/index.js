@@ -21,16 +21,14 @@ function start() {
     // Atualizando o timer
     timer.textContent = `Tempo: ${simulatorTime}`;
     simulatorTime += 1;
-    console.log(processes);
-    console.log(ready1);
-
+    
     updateReady();
   }, 1000);
 }
 
 // Compara os tempos de chegada do array de processos com o tempo atual do simulador e adiciona esses processos na lista de prontos
 function checkProcesses() {
-  while (processes[0].arrivalTime <= simulatorTime) {
+  while (processes.length > 0 && processes[0].arrivalTime <= simulatorTime) {
     ready1.push(processes[0]);
     processes.shift();
   }
@@ -97,7 +95,6 @@ function fillProcesses(text) {
     return a.arrivalTime - b.arrivalTime;
   })
 
-  console.log(processes);
 }
 
 // Altera a lista de processos quando é recebido um input de arquivo
