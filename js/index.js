@@ -16,17 +16,15 @@ var ready3 = [];
 function start() {
   toggleClasses();
   setInterval(() => {
-    if (processes.length > 0) checkProcesses();
+    if (processes.length <= 0) console.log("Erro: Nenhum processo foi encontrado");
     
-    // Atualizando o timer
-    timer.textContent = `Tempo: ${simulatorTime}`;
-    simulatorTime += 1;
-    
+    checkProcesses();
+    updateTimer();
     updateReady();
   }, 1000);
 }
 
-// Compara os tempos de chegada do array de processos com o tempo atual do simulador e adiciona esses processos na lista de prontos
+// Compara os tempos de chegada do array de processos com o tempo atual do simulador e adiciona esses processos na primeira lista de prontos
 function checkProcesses() {
   while (processes.length > 0 && processes[0].arrivalTime <= simulatorTime) {
     ready1.push(processes[0]);
@@ -34,7 +32,15 @@ function checkProcesses() {
   }
 }
 
+// Atualiza o timer
+function updateTimer() {
+  timer.textContent = `Tempo: ${simulatorTime}`;
+  console.log("to aqui");
+  simulatorTime += 1;
+}
+
 // Atualiza as filas de pronto
+// Por enquanto implementado apenas na fila 1
 function updateReady() {
   ready1Output.innerHTML = '';
   ready1.forEach(e => {
@@ -97,7 +103,7 @@ function fillProcesses(text) {
 
 }
 
-// Altera a lista de processos quando é recebido um input de arquivo
+// Altera a lista de processos quando é recebido um novo input de arquivo
 fileInput.addEventListener('change', function() { 
   var fr=new FileReader(); 
   fr.onload=function(){ 
