@@ -84,12 +84,15 @@ main {
 .cpu div {
   width: 60px;
   height: 60px;
+  display: flex;
+  flex-direction: column;
   margin: 5px;
   box-sizing: border-box;
   padding: 5px;
   border: 1px solid black;
   background-color: coral;
   position: absolute;
+  justify-content: space-between;
 }
 
 .cpu span {
@@ -115,6 +118,12 @@ main {
 #cpu4 {
   bottom: 5px;
   right: 5px;
+}
+
+.activeProcess {
+  background-color: cadetblue;
+  border: black 1px solid;
+  text-align: center;
 }
 
 .ready {
@@ -154,4 +163,3 @@ main {
   padding: 0;
   margin: 0;
 }
-

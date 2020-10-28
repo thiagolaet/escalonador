@@ -5,28 +5,11 @@ const fileInput = document.getElementById('input');
 const timer = document.getElementById('timer');
 const ready1Output = document.getElementById('ready1');
 
-var CPU = [
-  {
-    process:undefined,
-    quantumCounter: 0,
-    output: document.querySelector('#outputCpu1')
-  },
-  {
-    process:undefined,
-    quantumCounter: 0,
-    output: document.querySelector('#outputCpu2')
-  },
-  {
-    process:undefined,
-    quantumCounter: 0,
-    output: document.querySelector('#outputCpu3')
-  },
-  {
-    process:undefined,
-    quantumCounter: 0,
-    output: document.querySelector('#outputCpu4')
-  }
-];
+var CPU = {
+  process:undefined,
+  quantumCounter: 0,
+  output: document.querySelector('#outputCpu1')
+} 
 
 var simulatorTime = 0;
 var processes = [];
@@ -42,7 +25,7 @@ function start() {
     
     checkProcesses();
     updateTimer();
-    updateCPU();
+    updateCPUs();
     updateReady();
   }, 1000);
 }
@@ -62,13 +45,35 @@ function updateTimer() {
 }
 
 // 
-function updateCPU() {
-  CPU.forEach(e => {
-    if (!e.process && ready1.length > 0) {
-      e.process = ready1.pop();
-      e.output.innerHTML = e.process.name;
+function updateCPUs() {
+
+    // Se não tem processo na CPU e ainda tem processos na ready1
+    if (!CPU.process && ready1.length > 0) {
+      CPU.process = ready1.shift();
+      CPU.output.innerHTML = CPU.process.name;
+      CPU.output.classList.add('activeProcess');
+      CPU.quantumCounter = 0;
     }
-  });
+
+    // Se tem processo na CPU
+    else if (CPU.process) {
+      CPU.process.processorTime -= 1;
+      CPU.quantumCounter += 1;
+
+      // Se o processo chegou ao final de sua execução
+      if (CPU.process.processorTime == 0) {
+        console.log(`O processo ${CPU.process.name} terminou\n`);
+        resetCpu(CPU);
+      }
+  }
+}
+
+// Restaura a CPU para as configurações iniciais
+function resetCpu(cpu) {
+  cpu.process = undefined;
+  cpu.output.classList.remove('activeProcess');
+  cpu.quantumCounter = 0;
+  cpu.output.innerHTML = '';
 }
 
 // Atualiza as filas de pronto
