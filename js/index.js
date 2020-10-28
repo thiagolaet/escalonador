@@ -5,7 +5,29 @@ const fileInput = document.getElementById('input');
 const timer = document.getElementById('timer');
 const ready1Output = document.getElementById('ready1');
 
-var CPU1, CPU2, CPU3, CPU4;
+var CPU = [
+  {
+    process:undefined,
+    quantumCounter: 0,
+    output: document.querySelector('#outputCpu1')
+  },
+  {
+    process:undefined,
+    quantumCounter: 0,
+    output: document.querySelector('#outputCpu2')
+  },
+  {
+    process:undefined,
+    quantumCounter: 0,
+    output: document.querySelector('#outputCpu3')
+  },
+  {
+    process:undefined,
+    quantumCounter: 0,
+    output: document.querySelector('#outputCpu4')
+  }
+];
+
 var simulatorTime = 0;
 var processes = [];
 var ready1 = [];
@@ -20,6 +42,7 @@ function start() {
     
     checkProcesses();
     updateTimer();
+    updateCPU();
     updateReady();
   }, 1000);
 }
@@ -35,8 +58,17 @@ function checkProcesses() {
 // Atualiza o timer
 function updateTimer() {
   timer.textContent = `Tempo: ${simulatorTime}`;
-  console.log("to aqui");
   simulatorTime += 1;
+}
+
+// 
+function updateCPU() {
+  CPU.forEach(e => {
+    if (!e.process && ready1.length > 0) {
+      e.process = ready1.pop();
+      e.output.innerHTML = e.process.name;
+    }
+  });
 }
 
 // Atualiza as filas de pronto
