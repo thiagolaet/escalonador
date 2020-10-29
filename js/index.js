@@ -5,6 +5,9 @@ const fileInput = document.getElementById('input');
 const timer = document.getElementById('timer');
 const ready1Output = document.getElementById('ready1');
 
+// Define quantos segundos cada loop do simulador irá durar (1000 = 1s)
+const simulationTime = 200;
+
 var CPU = {
   process:undefined,
   quantumCounter: 0,
@@ -28,7 +31,7 @@ function start() {
     updateReady();
     checkEndSimulation(simulationLoop);
     updateTimer();
-  }, 1500);
+  }, simulationTime);
 }
 
 // Checa se ainda existem processos em execução ou para serem executados, se não tiver termina a simulação
@@ -73,6 +76,8 @@ function updateCPUs() {
     }
     else {
       CPU.process.processorTime -= 1;
+
+      // Impede que o processo de tempo real sofra interrupção por fatia de tempo
       if (CPU.process.priority == 1) CPU.quantumCounter += 1;
     }
   }
