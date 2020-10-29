@@ -1,12 +1,12 @@
 const menuDiv = document.querySelector('.menu');
 const simulatorDiv = document.querySelector('.simulator');
-const outputDiv = document.getElementById('output');
-const fileInput = document.getElementById('input');
+const outputDiv = document.getElementById('processesOutput');
+const fileInput = document.getElementById('fileInput');
 const timer = document.getElementById('timer');
 const ready1Output = document.getElementById('ready1');
 
 // Define quantos segundos cada loop do simulador irá durar (1000 = 1s)
-const simulationTime = 200;
+var simulationTime = 1000;
 
 var CPU = {
   process:undefined,
@@ -120,9 +120,8 @@ function toggleClasses() {
   simulatorDiv.classList.toggle('hidden');
 }
 
-// Força a terminação da simulação atual
+// Pula para o final da simulação
 function finish() {
-
 }
 
 // Termina a simulação atual e retorna ao menu
@@ -140,13 +139,11 @@ function fillProcesses(text) {
   // Inicializando a string que irá receber o texto para o output
   let outputText = '';
   
-  // Transformando os processos de listas para objetos (facilita a leitura) e concatenando a string de output
+  // Transformando os processos da lista em objetos (facilita a leitura)
   for(i=0;i<processes.length;i++) {
-    outputText += `Processo ${i}: ${processes[i]}<br>`
     processes[i] = processes[i].replaceAll(' ', '');
     processes[i] = processes[i].split(',');
     processes[i] = {
-      name: `P${i}`,
       arrivalTime: parseInt(processes[i][0]),
       priority: parseInt(processes[i][1]),
       processorTime: parseInt(processes[i][2]),
@@ -156,13 +153,17 @@ function fillProcesses(text) {
     }
   }
 
-  // Atualizando a string de output
-  outputDiv.innerHTML=outputText;
-
   // Ordenando os processos por arrivalTime
   processes.sort((a, b) => {
     return a.arrivalTime - b.arrivalTime;
-  })
+  });
+
+  // Nomeando os processos agora ordenados por arrival time e atualizando o output de processos
+  for (i=0; i<processes.length;i++) {
+    processes[i].name = `P${i}`;
+    outputText += `${processes[i].name}: ${processes[i].arrivalTime}, ${processes[i].priority}, ${processes[i].processorTime}, ${processes[i].mBytes}, ${processes[i].printer}, ${processes[i].disk}<br>`;
+  }
+  outputDiv.innerHTML=outputText;
 
 }
 

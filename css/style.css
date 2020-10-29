@@ -47,7 +47,7 @@ main {
   display: none;
 }
 
-#output {
+#processesOutput {
   margin-top: 10px;
   overflow-y: auto;
   max-height: 210px;
