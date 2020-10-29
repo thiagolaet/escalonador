@@ -9,7 +9,7 @@ const ready1Output = document.getElementById('ready1');
 var simulationTime = 1000;
 
 var CPU = {
-  process:undefined,
+  process: undefined,
   quantumCounter: 0,
   output: document.querySelector('#outputCpu1')
 } 
@@ -19,6 +19,7 @@ var processes = [];
 var ready1 = [];
 var ready2 = [];
 var ready3 = [];
+var finishedProcesses = [];
 
 // Inicia o simulador
 function start() {
@@ -64,8 +65,10 @@ function updateCPUs() {
   if (CPU.process) {
 
     // Se o processo chegou ao final de sua execução
-    if (CPU.process.processorTime == 0) {
+    if (CPU.process.remainingTime == 0) {
       console.log(`O processo ${CPU.process.name} terminou em ${simulatorTime - 1}\n`);
+      CPU.process.endTime = simulatorTime - 1;
+      finishedProcesses.push(CPU.process);
       resetCpu(CPU);
     }
     // Se o processo chegou no quantum
@@ -75,7 +78,7 @@ function updateCPUs() {
       resetCpu(CPU);
     }
     else {
-      CPU.process.processorTime -= 1;
+      CPU.process.remainingTime -= 1;
 
       // Impede que o processo de tempo real sofra interrupção por fatia de tempo
       if (CPU.process.priority == 1) CPU.quantumCounter += 1;
@@ -88,7 +91,7 @@ function updateCPUs() {
     CPU.output.innerHTML = CPU.process.name;
     CPU.output.classList.add('activeProcess');
     CPU.quantumCounter = 1;
-    CPU.process.processorTime -= 1;
+    CPU.process.remainingTime -= 1;
     console.log(`O processo ${CPU.process.name} chegou em ${simulatorTime}`);
   }
 
@@ -147,6 +150,7 @@ function fillProcesses(text) {
       arrivalTime: parseInt(processes[i][0]),
       priority: parseInt(processes[i][1]),
       processorTime: parseInt(processes[i][2]),
+      remainingTime: parseInt(processes[i][2]),
       mBytes: parseInt(processes[i][3]),
       printer: parseInt(processes[i][4]),
       disk: parseInt(processes[i][5])
