@@ -20,14 +20,23 @@ var ready3 = [];
 // Inicia o simulador
 function start() {
   toggleClasses();
-  setInterval(() => {
-    if (processes.length <= 0) console.log("Erro: Nenhum processo foi encontrado");
+  var simulationLoop = setInterval(() => {
+    // if (processes.length <= 0) console.log("Nenhum novo processo foi encontrado");
     
     checkProcesses();
-    updateTimer();
     updateCPUs();
     updateReady();
-  }, 1000);
+    checkEndSimulation(simulationLoop);
+    updateTimer();
+  }, 1500);
+}
+
+// Checa se ainda existem processos em execução ou para serem executados, se não tiver termina a simulação
+function checkEndSimulation(simulationLoop) {
+  if (ready1.length == 0 && ready2.length == 0 && ready3.length == 0 && processes.length == 0 && !CPU.process) {
+    console.log('A simulação terminou.')
+    clearInterval(simulationLoop);
+  }
 }
 
 // Compara os tempos de chegada do array de processos com o tempo atual do simulador e adiciona esses processos na primeira lista de prontos
@@ -44,28 +53,40 @@ function updateTimer() {
   simulatorTime += 1;
 }
 
-// 
+
+// Escalonador de processos
 function updateCPUs() {
+  
+    // Se tem processo ocupando a CPU
+  if (CPU.process) {
 
-    // Se não tem processo na CPU e ainda tem processos na ready1
-    if (!CPU.process && ready1.length > 0) {
-      CPU.process = ready1.shift();
-      CPU.output.innerHTML = CPU.process.name;
-      CPU.output.classList.add('activeProcess');
-      CPU.quantumCounter = 0;
+    // Se o processo chegou ao final de sua execução
+    if (CPU.process.processorTime == 0) {
+      console.log(`O processo ${CPU.process.name} terminou em ${simulatorTime - 1}\n`);
+      resetCpu(CPU);
     }
-
-    // Se tem processo na CPU
-    else if (CPU.process) {
+    // Se o processo chegou no quantum
+    else if (CPU.quantumCounter == 2) {
+      console.log(`O processo ${CPU.process.name} liberou a CPU em ${simulatorTime - 1} em razão do quantum\n`);
+      ready1.push(CPU.process);
+      resetCpu(CPU);
+    }
+    else {
       CPU.process.processorTime -= 1;
       CPU.quantumCounter += 1;
-
-      // Se o processo chegou ao final de sua execução
-      if (CPU.process.processorTime == 0) {
-        console.log(`O processo ${CPU.process.name} terminou\n`);
-        resetCpu(CPU);
-      }
+    }
   }
+
+  // Se não tem processo na CPU e ainda tem processos na ready1
+  if (CPU.process == undefined && ready1.length > 0) {
+    CPU.process = ready1.shift();
+    CPU.output.innerHTML = CPU.process.name;
+    CPU.output.classList.add('activeProcess');
+    CPU.quantumCounter = 1;
+    CPU.process.processorTime -= 1;
+    console.log(`O processo ${CPU.process.name} chegou em ${simulatorTime}`);
+  }
+
 }
 
 // Restaura a CPU para as configurações iniciais
