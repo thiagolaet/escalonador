@@ -73,7 +73,7 @@ function updateCPUs() {
     }
     else {
       CPU.process.processorTime -= 1;
-      CPU.quantumCounter += 1;
+      if (CPU.process.priority == 1) CPU.quantumCounter += 1;
     }
   }
 
