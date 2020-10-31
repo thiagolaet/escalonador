@@ -8,7 +8,7 @@ const ready1Output = document.getElementById('ready1');
 // Define quantos segundos cada loop do simulador irá durar (1000 = 1s)
 var simulationTime = 1000;
 var memoryPointer = 0;
-var memoryBlocksUsed = new Array();
+var memoryBlocksInUse = new Array();
 var j = 0;
 
 var CPU = {
@@ -32,10 +32,10 @@ function start() {
     
     checkProcesses();
     updateCPUs();
-    update_memory();
     updateReady();
     checkEndSimulation(simulationLoop);
     updateTimer();
+    updateMemory();
     }, simulationTime);
 }
 
@@ -178,16 +178,19 @@ function fillProcesses(text) {
 
 
 // Preenche a var memoryBlocksUsed com um par de valores (talvez fosse melgor um array 2d tipo par ordenado)
-function update_memory(){
+function updateMemory(){
     for(i = 0; i < processes.length; i++) {
-        if(processes[i].inMemory == false) {
-            memoryBlocksUsed.push([memoryPointer, memoryPointer + processes[i].mBytes]);
+
+        if(processes[i].inMemory == false && simulatorTime >= processes[i].arrivalTime) {
+            //"alocando" memoria assim que o arrival time chega
+            
+            memoryBlocksInUse.push([memoryPointer, memoryPointer + processes[i].mBytes]);
             j = j+1;
             memoryPointer += processes[i].mBytes;
-            console.log(`Apontador esta e ${memoryPointer}, lista de processos: ${memoryBlocksUsed} `)
+            console.log(`Apontador esta em ${memoryPointer}, lista de processos: ${memoryBlocksInUse}, tempo da simulacao: ${simulatorTime} `);
             processes[i].inMemory = true;
         }
-    };
+    }
 }
 
 // Altera a lista de processos quando é recebido um novo input de arquivo
