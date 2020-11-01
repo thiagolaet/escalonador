@@ -4,15 +4,18 @@ const outputDiv = document.getElementById('processesOutput');
 const fileInput = document.getElementById('fileInput');
 const timer = document.getElementById('timer');
 const ready1Output = document.getElementById('ready1');
+const ready2Output = document.getElementById('ready2');
+const ready3Output = document.getElementById('ready3');
 const priorityQueueOutput = document.getElementById('priorityQueue');
 
 // Define quantos segundos cada loop do simulador irá durar (1000 = 1s)
-var simulationTime = 1000;
+var simulationTime = 200;
 
 var CPU = {
   process: undefined,
   quantumCounter: 0,
-  output: document.querySelector('#outputCpu1')
+  lastQueue: undefined,
+  output: document.querySelector('#outputCpu1'),
 } 
 
 var simulatorTime = 0;
@@ -71,22 +74,28 @@ function updateTimer() {
 // Escalonador de processos
 function updateCPUs() {
   
-    // Se tem processo ocupando a CPU
+  // Se tem processo ocupando a CPU
   if (CPU.process) {
 
     // Se o processo chegou ao final de sua execução
-    if (CPU.process.remainingTime == 0) {
-      console.log(`O processo ${CPU.process.name} terminou em ${simulatorTime - 1}\n`);
+    if (CPU.process.remainingTime <= 0) {
+      console.log(`O processo ${CPU.process.name} terminou em t = ${simulatorTime - 1}\n`);
       CPU.process.endTime = simulatorTime - 1;
       finishedProcesses.push(CPU.process);
       resetCpu(CPU);
     }
+
     // Se o processo chegou no quantum
     else if (CPU.quantumCounter == 2) {
-      console.log(`O processo ${CPU.process.name} liberou a CPU em ${simulatorTime - 1} em razão do quantum\n`);
-      ready1.push(CPU.process);
+      console.log(`O processo ${CPU.process.name} liberou a CPU em t = ${simulatorTime - 1} em razão do quantum\n`);
+      
+      // Enviando o processo pra lista n+1 (sendo n a lista de onde ele veio)
+      if (CPU.lastQueue == 1) ready2.push(CPU.process);
+      else if (CPU.lastQueue == 2 || CPU.lastQueue == 3) ready3.push(CPU.process);
       resetCpu(CPU);
     }
+
+    // Se o processo continua em execução
     else {
       CPU.process.remainingTime -= 1;
 
@@ -96,39 +105,62 @@ function updateCPUs() {
   }
 
   // Se não tem processo na CPU e ainda tem processos na fila de prioridade
-  // TO DO - Tratar essa repetição de código mais tarde
+  // Tratar essa repetição de código mais tarde (dois ifs do priority)
   if (priorityQueue.length > 0) {
+
+    // Se não tem processo na CPU
     if (!CPU.process) {
       CPU.process = priorityQueue.shift();
+      CPU.lastQueue = 0;
       CPU.output.innerHTML = CPU.process.name;
       CPU.output.classList.add('activeProcess');
       CPU.quantumCounter = 1;
       CPU.process.remainingTime -= 1;
-      console.log(`O processo ${CPU.process.name} chegou da fila de prioridade em ${simulatorTime}`);
+      console.log(`O processo ${CPU.process.name} chegou da fila de prioridade em t = ${simulatorTime}`);
     }
+
+    // Se tem processo na CPU e a prioridade dele é inferior
     else if (CPU.process && CPU.process.priority == 1) {
-      console.log(`O processo ${CPU.process.name} liberou a CPU em ${simulatorTime} em função da chegada do processo ${priorityQueue[0].name}\n de maior prioridade.`);
+      console.log(`O processo ${CPU.process.name} liberou a CPU em t = ${simulatorTime} em função da chegada do processo ${priorityQueue[0].name}\n de maior prioridade.`);
       ready1.push(CPU.process);
       resetCpu(CPU);
       CPU.process = priorityQueue.shift();
+      CPU.lastQueue = 0;
       CPU.output.innerHTML = CPU.process.name;
       CPU.output.classList.add('activeProcess');
       CPU.quantumCounter = 1;
       CPU.process.remainingTime -= 1;
-      console.log(`O processo ${CPU.process.name} chegou da fila de prioridade em ${simulatorTime}`);
+      console.log(`O processo ${CPU.process.name} chegou da fila de prioridade em t = ${simulatorTime}`);
     }
   }
 
-  // Se não tem processo na CPU e ainda tem processos na ready1
-  else if (CPU.process == undefined && ready1.length > 0) {
-    CPU.process = ready1.shift();
+  // Se não tem processo na CPU e ainda tem processos nas filas de pronto
+  else if (CPU.process == undefined && (ready1.length > 0 || ready2.length > 0 || ready3.length > 0)) {
+
+    // Escolhendo a fila e salvando a informação dela na CPU
+    if (ready1.length > 0) {
+      CPU.process = ready1.shift();
+      CPU.lastQueue = 1;
+    }
+    else if (ready2.length > 0) {
+      CPU.process = ready2.shift();
+      CPU.lastQueue = 2;
+    }
+    else {
+      CPU.process = ready3.shift();
+      CPU.lastQueue = 3;
+    }
+
+    // Alterando o output da CPU
     CPU.output.innerHTML = CPU.process.name;
     CPU.output.classList.add('activeProcess');
+
+    // Inicializando/atualizando os contadores do processo que chegou
     CPU.quantumCounter = 1;
     CPU.process.remainingTime -= 1;
-    console.log(`O processo ${CPU.process.name} chegou da fila 1 de prontos em ${simulatorTime}`);
-  }
 
+    console.log(`O processo ${CPU.process.name} chegou da fila ${CPU.lastQueue} de prontos em t = ${simulatorTime}`);
+  }
 }
 
 // Restaura a CPU para as configurações iniciais
@@ -140,7 +172,7 @@ function resetCpu(cpu) {
 }
 
 // Atualiza as filas de pronto
-// Por enquanto implementado apenas na fila 1
+// Tratar essa repetição de código mais tarde
 function updateQueues() {
   ready1Output.innerHTML = '';
   ready1.forEach(e => {
@@ -148,6 +180,22 @@ function updateQueues() {
     li.classList.add('readyItem')
     li.textContent = e.name;
     ready1Output.appendChild(li);
+  });
+
+  ready2Output.innerHTML = '';
+  ready2.forEach(e => {
+    let li = document.createElement('li');
+    li.classList.add('readyItem')
+    li.textContent = e.name;
+    ready2Output.appendChild(li);
+  });
+
+  ready3Output.innerHTML = '';
+  ready3.forEach(e => {
+    let li = document.createElement('li');
+    li.classList.add('readyItem')
+    li.textContent = e.name;
+    ready3Output.appendChild(li);
   });
 
   priorityQueueOutput.innerHTML = '';
