@@ -8,8 +8,6 @@ const ready2Output = document.getElementById('ready2');
 const ready3Output = document.getElementById('ready3');
 const priorityQueueOutput = document.getElementById('priorityQueue');
 
-// Define quantos segundos cada loop do simulador irá durar (1000 = 1s)
-var simulationTime = 200;
 
 var CPUs = [
   {
@@ -52,6 +50,10 @@ var priorityQueue = [];
 
 // Inicia o simulador
 function start() {
+
+  // Define quantos segundos cada loop do simulador irá durar (1000 = 1s)
+  const simulationTime = parseFloat(document.getElementById("timeInput").value) * 1000;
+
   toggleClasses();
   var simulationLoop = setInterval(() => {    
     checkProcesses();
