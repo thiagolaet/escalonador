@@ -40,6 +40,7 @@ var CPUs = [
 
 var simulatorTime = 0;
 var processes = [];
+var finishedProcesses = [];
 
 // Fila dos processos sem prioridade (Feedback)
 var ready1 = [];
@@ -48,14 +49,11 @@ var ready3 = [];
 
 // Fila dos processos de tempo real (FCFS)
 var priorityQueue = [];
-var finishedProcesses = [];
 
 // Inicia o simulador
 function start() {
   toggleClasses();
-  var simulationLoop = setInterval(() => {
-    // if (processes.length <= 0) console.log("Nenhum novo processo foi encontrado");
-    
+  var simulationLoop = setInterval(() => {    
     checkProcesses();
     updateCPUs();
     updateQueues();
@@ -67,7 +65,7 @@ function start() {
 // Checa se ainda existem processos em execução ou para serem executados, se não tiver termina a simulação
 function checkEndSimulation(simulationLoop) {
   if (ready1.length == 0 && ready2.length == 0 && ready3.length == 0 && processes.length == 0 && !CPUs[0].process && !CPUs[1].process && !CPUs[2].process && !CPUs[3].process) {
-    console.log('A simulação terminou.')
+    console.log(`A simulação terminou em t = ${simulatorTime}.`);
     clearInterval(simulationLoop);
   }
 }
@@ -76,10 +74,13 @@ function checkEndSimulation(simulationLoop) {
 function checkProcesses() {
   while (processes.length > 0 && processes[0].arrivalTime <= simulatorTime) {
     
+    processes[0].state = "pronto";
+    console.log(`O processo ${processes[0].name} saiu do estado de "Novo" e foi para o estado de "Pronto" em t = ${simulatorTime}.`);
+
     // Decide a fila para onde o processo vai baseado na prioridade
     if (processes[0].priority == 0) priorityQueue.push(processes[0]);
     else ready1.push(processes[0]);
-    
+  
     processes.shift();
   }
 }
@@ -101,7 +102,9 @@ function updateCPUs() {
 
       // Se o processo chegou ao final de sua execução
       if (CPU.process.remainingTime <= 0) {
-        console.log(`O processo ${CPU.process.name} terminou na CPU ${index+1} em t = ${simulatorTime - 1}\n`);
+        console.log(`O processo ${CPU.process.name} terminou na CPU ${index+1} em t = ${simulatorTime - 1}.`);
+        console.log(`O processo ${CPU.process.name} saiu do estado "Executando" para o estado "Finalizado" em t = ${simulatorTime - 1}.`);
+        CPU.process.state = "finalizado";
         CPU.process.endTime = simulatorTime - 1;
         finishedProcesses.push(CPU.process);
         resetCpu(CPU);
@@ -109,8 +112,10 @@ function updateCPUs() {
 
       // Se o processo chegou no quantum
       else if (CPU.quantumCounter == 2) {
-        console.log(`O processo ${CPU.process.name} liberou a CPU ${index+1} em t = ${simulatorTime - 1} em razão do quantum\n`);
-        
+        console.log(`O processo ${CPU.process.name} liberou a CPU ${index+1} em razão do quantum em t = ${simulatorTime - 1}.`);
+        console.log(`O processo ${CPU.process.name} saiu do estado "Executando" para o estado "Pronto" em t = ${simulatorTime - 1}.`);
+        CPU.process.state = "pronto";
+
         // Enviando o processo pra lista n+1 (sendo n a lista de onde ele veio)
         if (CPU.lastQueue == 1) ready2.push(CPU.process);
         else if (CPU.lastQueue == 2 || CPU.lastQueue == 3) ready3.push(CPU.process);
@@ -138,21 +143,31 @@ function updateCPUs() {
         CPU.output.classList.add('activeProcess');
         CPU.quantumCounter = 1;
         CPU.process.remainingTime -= 1;
-        console.log(`O processo ${CPU.process.name} chegou da fila de prioridade na CPU ${index+1} em t = ${simulatorTime}`);
+        console.log(`O processo ${CPU.process.name} chegou da fila de prioridade na CPU ${index+1} em t = ${simulatorTime}.`);
+        console.log(`O processo ${CPU.process.name} saiu do estado de "Pronto" para o estado de "Executando" em t = ${simulatorTime}.`)
       }
 
       // Se tem processo na CPU e a prioridade dele é inferior
       else if (CPU.process && CPU.process.priority == 1) {
-        console.log(`O processo ${CPU.process.name} liberou a CPU ${index+1} em t = ${simulatorTime} em função da chegada do processo ${priorityQueue[0].name}\n de maior prioridade.`);
-        ready1.push(CPU.process);
+        console.log(`O processo ${CPU.process.name} liberou a CPU ${index+1} em função da chegada do processo ${priorityQueue[0].name} de maior prioridade em t = ${simulatorTime}.`);
+        console.log(`O processo ${CPU.process.name} saiu do estado "Executando" para o estado "Pronto" em t = ${simulatorTime}.`);
+        console.log(`O processo ${priorityQueue[0].name} saiu do estado "Pronto" para o estado "Executando" em t = ${simulatorTime}.`);
+
+        CPU.process.state = "pronto";
+
+        // Enviando o processo pra lista n+1 (sendo n a lista de onde ele veio)
+        if (CPU.lastQueue == 1) ready2.push(CPU.process);
+        else if (CPU.lastQueue == 2 || CPU.lastQueue == 3) ready3.push(CPU.process);
         resetCpu(CPU);
+
         CPU.process = priorityQueue.shift();
         CPU.lastQueue = 0;
         CPU.output.innerHTML = CPU.process.name;
         CPU.output.classList.add('activeProcess');
         CPU.quantumCounter = 1;
         CPU.process.remainingTime -= 1;
-        console.log(`O processo ${CPU.process.name} chegou da fila de prioridade na CPU ${index+1} em t = ${simulatorTime}`);
+        console.log(`O processo ${CPU.process.name} chegou da fila de prioridade na CPU ${index+1} em t = ${simulatorTime}.`);
+        CPU.process.state = "executando";
       }
     }
 
@@ -181,7 +196,9 @@ function updateCPUs() {
       CPU.quantumCounter = 1;
       CPU.process.remainingTime -= 1;
 
-      console.log(`O processo ${CPU.process.name} chegou da fila ${CPU.lastQueue} de prontos na CPU ${index+1} em t = ${simulatorTime}`);
+      console.log(`O processo ${CPU.process.name} chegou da fila ${CPU.lastQueue} de prontos na CPU ${index+1} em t = ${simulatorTime}.`);
+      console.log(`O processo ${CPU.process.name} saiu do estado "Pronto" para o estado "Executando" em t = ${simulatorTime}.`);
+
     }
   });
 }
@@ -266,7 +283,8 @@ function fillProcesses(text) {
       remainingTime: parseInt(processes[i][2]),
       mBytes: parseInt(processes[i][3]),
       printer: parseInt(processes[i][4]),
-      disk: parseInt(processes[i][5])
+      disk: parseInt(processes[i][5]),
+      state: "novo"
     }
   }
 
