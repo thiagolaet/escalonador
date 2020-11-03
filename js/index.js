@@ -9,7 +9,7 @@ const ready3Output = document.getElementById('ready3');
 const priorityQueueOutput = document.getElementById('priorityQueue');
 
 // Define quantos segundos cada loop do simulador irá durar (1000 = 1s)
-var simulationTime = 1000;
+var simulationTime = 200;
 
 var CPUs = [
   {
@@ -257,12 +257,6 @@ function toggleClasses() {
 function finish() {
 }
 
-// Termina a simulação atual e retorna ao menu
-function menu() {
-  finish();
-  toggleClasses();
-}
-
 // Preenche a lista de objetos processos e atualiza o output relativo a eles no menu
 function fillProcesses(text) {
 
@@ -319,6 +313,10 @@ var Interface = {
     let p = document.createElement('p');
     p.textContent = text;
     Interface.output.appendChild(p);
+    Interface.output.scroll({
+      top: Interface.output.scrollHeight,
+      behavior: 'smooth'
+    });
   }
 };
 
