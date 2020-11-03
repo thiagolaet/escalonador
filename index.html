@@ -15,12 +15,17 @@
       <h2>Escalonador de Processos</h2>
       <p>Simulador de um escalonador de processos desenvolvido para a disciplina de Sistemas Operacionais na Universidade Federal Fluminense. </p>
       <input id="fileInput" type="file">
-      <div id="processesOutput" class="hidden"></div>
+      <div id="processesOutput" class="hidden logField"></div>
       <button onclick="start()">Começar</button>
     </div>
 
     <div class="simulator hidden">
       <h3 id="timer">Tempo: 0</h3>
+
+      <div id="eventsOutput" class="logField">
+
+      </div>
+
       <div class="view">
 
         <div class="cpu">
