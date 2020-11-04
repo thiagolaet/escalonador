@@ -153,7 +153,6 @@ function updateCPUs() {
       else if (CPU.process && CPU.process.priority == 1) {
         Interface.log(`O processo ${CPU.process.name} liberou a CPU ${index+1} em função da chegada do processo ${priorityQueue[0].name} de maior prioridade em t = ${simulatorTime}.`);
         Interface.log(`O processo ${CPU.process.name} saiu do estado "Executando" para o estado "Pronto" em t = ${simulatorTime}.`);
-        Interface.log(`O processo ${priorityQueue[0].name} saiu do estado "Pronto" para o estado "Executando" em t = ${simulatorTime}.`);
 
         CPU.process.state = "pronto";
 
@@ -169,6 +168,7 @@ function updateCPUs() {
         CPU.quantumCounter = 1;
         CPU.process.remainingTime -= 1;
         Interface.log(`O processo ${CPU.process.name} chegou da fila de prioridade na CPU ${index+1} em t = ${simulatorTime}.`);
+        Interface.log(`O processo ${CPU.process.name} saiu do estado "Pronto" para o estado "Executando" em t = ${simulatorTime}.`);
         CPU.process.state = "executando";
       }
     }
@@ -292,7 +292,7 @@ function fillProcesses(text) {
   // Nomeando os processos agora ordenados por arrival time e atualizando o output de processos
   for (i=0; i<processes.length;i++) {
     processes[i].name = `P${i}`;
-    outputText += `${processes[i].name}: ${processes[i].arrivalTime}, ${processes[i].priority}, ${processes[i].processorTime}, ${processes[i].mBytes}, ${processes[i].printer}, ${processes[i].disk}<br>`;
+    outputText += `${processes[i].name}: ${processes[i].arrivalTime}, ${processes[i].priority}, ${processes[i].processorTime}, ${processes[i].mBytes}, ${processes[i].printer}, ${processes[i].disk}<br><br>`;
   }
   outputDiv.innerHTML=outputText;
 
