@@ -254,29 +254,45 @@ function updateMemory() {
     memoryOutput.innerHTML = '';
 
     occupiedMemory.forEach(mBlock => {
-        let box = document.createElement('div');
+      let box = document.createElement('div');
 
-        if (mBlock.size/20 > 20) {
-            let text = document.createElement('span');
-            text.textContent = `P${mBlock.process}`;
-            text.style.alignSelf = 'center';
-            text.style.fontSize = '12px';
-            box.style.display = 'flex';
-            box.style.justifyContent = 'center';
-            box.appendChild(text);
-        }
+      if (mBlock.size/20 > 20) {
+          let text = document.createElement('span');
+          text.textContent = `P${mBlock.process}`;
+          text.style.fontWeight = 'bold';
+          text.style.alignSelf = 'center';
+          text.style.fontSize = '12px';
+          box.style.display = 'flex';
+          box.style.justifyContent = 'center';
+          box.appendChild(text);
+      }
 
-        // Dividindo por 20 porque a memória é de 16GB e estamos utilizando 800px para representar
-        box.style.width = `${mBlock.size /20}px`;
-        box.style.height = '60px';
-        box.style.boxSizing = 'border-box';
-        box.style.border = '1px solid black';
-        box.style.backgroundColor = 'cadetblue';
-        box.style.position = 'absolute';
-        box.style.left = `${mBlock.start/20}px`;
-        box.style.alignSelf = 'center';
-        memoryOutput.appendChild(box);
+      // Dividindo por 20 porque a memória é de 16GB e estamos utilizando 800px para representar
+      box.style.width = `${mBlock.size /20}px`;
+      box.style.height = '72px';
+      box.style.boxSizing = 'border-box';
+      box.style.border = '1px solid black';
+      box.style.backgroundColor = 'cadetblue';
+      box.style.position = 'absolute';
+      box.style.left = `${mBlock.start/20}px`;
+      box.style.alignSelf = 'center';
+      memoryOutput.appendChild(box);
     });
+
+    freeMemory.forEach(mBlock => {
+      let box = document.createElement('div');
+
+      // Dividindo por 20 porque a memória é de 16GB e estamos utilizando 800px para representar
+      box.style.width = `${mBlock.size /20}px`;
+      box.style.height = '72px';
+      box.style.boxSizing = 'border-box';
+      box.style.border = '1px solid black';
+      box.style.backgroundColor = '#2C4251';
+      box.style.position = 'absolute';
+      box.style.left = `${mBlock.start/20}px`;
+      box.style.alignSelf = 'center';
+      memoryOutput.appendChild(box);
+  });
 }
 
 // Escalonador de processos
