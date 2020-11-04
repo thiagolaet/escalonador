@@ -8,6 +8,7 @@ const ready2Output = document.getElementById('ready2');
 const ready3Output = document.getElementById('ready3');
 const priorityQueueOutput = document.getElementById('priorityQueue');
 const suspendedQueueOutput = document.getElementById('suspended');
+const memoryOutput = document.getElementById('memoryOutput');
 
 // Lista com os 4 objetos de CPU
 var CPUs = [
@@ -46,7 +47,7 @@ var finishedProcesses = [];
 var freeMemory = [
   {
   start: 0,
-  size: 200
+  size: 16000
 }];
 var occupiedMemory = [];
 
@@ -72,6 +73,7 @@ function start() {
     checkProcesses();
     updateCPUs();
     updateQueues();
+    updateMemory();
     checkEndSimulation(simulationLoop);
     updateTimer();
   }, t);
@@ -220,6 +222,37 @@ function deallocateProcess(process) {
 function updateTimer() {
   timer.textContent = `Tempo: ${simulatorTime}`;
   simulatorTime += 1;
+}
+
+// Atualiza a visualização da memória
+function updateMemory() {
+
+    memoryOutput.innerHTML = '';
+
+    occupiedMemory.forEach(mBlock => {
+        let box = document.createElement('div');
+
+        if (mBlock.size/20 > 20) {
+            let text = document.createElement('span');
+            text.textContent = mBlock.process;
+            text.style.alignSelf = 'center';
+            text.style.fontSize = '12px';
+            box.style.display = 'flex';
+            box.style.justifyContent = 'center';
+            box.appendChild(text);
+        }
+
+        // Dividindo por 20 porque a memória é de 16GB e estamos utilizando 800px para representar
+        box.style.width = `${mBlock.size /20}px`;
+        box.style.height = '60px';
+        box.style.boxSizing = 'border-box';
+        box.style.border = '1px solid black';
+        box.style.backgroundColor = 'cadetblue';
+        box.style.position = 'absolute';
+        box.style.left = `${mBlock.start/20}px`;
+        box.style.alignSelf = 'center';
+        memoryOutput.appendChild(box);
+    });
 }
 
 // Escalonador de processos
