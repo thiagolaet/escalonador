@@ -53,6 +53,10 @@ var occupiedMemory = [];
 
 // Lista dos processos suspensos
 var suspended = [];
+var suspendedBlocked = [];
+
+// Lista dos processos bloqueados
+var blocked = [];
 
 // Fila dos processos sem prioridade (Feedback)
 var ready1 = [];
@@ -82,7 +86,7 @@ function start() {
 
 // Checa se ainda existem processos em execução ou para serem executados, se não tiver termina a simulação
 function checkEndSimulation(simulationLoop) {
-  if (ready1.length == 0 && ready2.length == 0 && ready3.length == 0 && processes.length == 0 && !CPUs[0].process && !CPUs[1].process && !CPUs[2].process && !CPUs[3].process) {
+  if (ready1.length == 0 && ready2.length == 0 && ready3.length == 0 && processes.length == 0 && blocked.length == 0 && suspendedBlocked.length == 0 && suspended.length == 0 && !CPUs[0].process && !CPUs[1].process && !CPUs[2].process && !CPUs[3].process) {
     Interface.log(`A simulação terminou em t = ${simulatorTime}.`);
     clearInterval(simulationLoop);
   }
