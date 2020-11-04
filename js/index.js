@@ -70,6 +70,7 @@ function start() {
 
   toggleClasses();
   var simulationLoop = setInterval(() => {    
+    checkSuspended();
     checkProcesses();
     updateCPUs();
     updateQueues();
@@ -85,6 +86,25 @@ function checkEndSimulation(simulationLoop) {
     Interface.log(`A simulação terminou em t = ${simulatorTime}.`);
     clearInterval(simulationLoop);
   }
+}
+
+
+// Busca processos na lista de suspensos e faz swapping in até encontrar um processo que não faça
+function checkSuspended() {
+    let swapped = true;
+    while (suspended.length > 0 && swapped == true) {
+        swapped = false;
+        // Buscando um espaço livre onde o processo caiba
+        for (i = 0; i < freeMemory.length; i++) {
+            if (freeMemory[i].size >= suspended[0].mBytes) {
+                allocateProcess(suspended[0], i);
+                ready1.push(suspended[0]);
+                suspended.shift();
+                swapped = true;
+                break;
+            }
+        }
+    }
 }
 
 // Compara os tempos de chegada do array de processos com o tempo atual do simulador e adiciona esses processos na primeira lista de prontos
@@ -133,7 +153,7 @@ function checkProcesses() {
 function allocateProcess(process, freeIndex) {
   // Adicionando o novo bloco de memória ocupado 
   occupiedMemory.push({
-    process: process.name,
+    process: process.id,
     start: freeMemory[freeIndex].start,
     size: process.mBytes
   });
@@ -160,7 +180,7 @@ function deallocateProcess(process) {
   // Percorrendo a lista de blocos ocupados até achar o processo
   let index;
   for (i = 0; i < occupiedMemory.length; i++) {
-    if (process.name == occupiedMemory[i].process) {
+    if (process.id == occupiedMemory[i].process) {
       index = i;
       break;
     }
@@ -234,7 +254,7 @@ function updateMemory() {
 
         if (mBlock.size/20 > 20) {
             let text = document.createElement('span');
-            text.textContent = mBlock.process;
+            text.textContent = `P${mBlock.process}`;
             text.style.alignSelf = 'center';
             text.style.fontSize = '12px';
             box.style.display = 'flex';
@@ -276,6 +296,7 @@ function updateCPUs() {
 
       // Se o processo chegou no quantum
       else if (CPU.quantumCounter == 2) {
+
         Interface.log(`O processo ${CPU.process.name} liberou a CPU ${index+1} em razão do quantum em t = ${simulatorTime - 1}.`);
         Interface.log(`O processo ${CPU.process.name} saiu do estado "Executando" para o estado "Pronto" em t = ${simulatorTime - 1}.`);
         CPU.process.state = "pronto";
@@ -381,7 +402,7 @@ function updateQueues() {
   ready1Output.innerHTML = '';
   ready1.forEach(e => {
     let li = document.createElement('li');
-    li.classList.add('readyItem')
+    li.classList.add('queuesItem')
     li.textContent = e.name;
     ready1Output.appendChild(li);
   });
@@ -389,7 +410,7 @@ function updateQueues() {
   ready2Output.innerHTML = '';
   ready2.forEach(e => {
     let li = document.createElement('li');
-    li.classList.add('readyItem')
+    li.classList.add('queuesItem')
     li.textContent = e.name;
     ready2Output.appendChild(li);
   });
@@ -397,7 +418,7 @@ function updateQueues() {
   ready3Output.innerHTML = '';
   ready3.forEach(e => {
     let li = document.createElement('li');
-    li.classList.add('readyItem')
+    li.classList.add('queuesItem')
     li.textContent = e.name;
     ready3Output.appendChild(li);
   });
@@ -405,7 +426,7 @@ function updateQueues() {
   priorityQueueOutput.innerHTML = '';
   priorityQueue.forEach(e => {
     let li = document.createElement('li');
-    li.classList.add('readyItem');
+    li.classList.add('queuesItem');
     li.textContent = e.name;
     priorityQueueOutput.appendChild(li);
   });
@@ -413,7 +434,7 @@ function updateQueues() {
   suspendedQueueOutput.innerHTML = '';
   suspended.forEach(e => {
     let li = document.createElement('li');
-    li.classList.add('readyItem');
+    li.classList.add('queuesItem');
     li.textContent = e.name;
     suspendedQueueOutput.appendChild(li);
   });
@@ -461,6 +482,7 @@ function fillProcesses(text) {
 
   // Nomeando os processos agora ordenados por arrival time e atualizando o output de processos
   for (i=0; i<processes.length;i++) {
+    processes[i].id = i;
     processes[i].name = `P${i}`;
     outputText += `${processes[i].name}: ${processes[i].arrivalTime}, ${processes[i].priority}, ${processes[i].processorTime}, ${processes[i].mBytes}, ${processes[i].printer}, ${processes[i].disk}<br><br>`;
   }

@@ -141,19 +141,20 @@ main {
   text-align: center;
 }
 
-.ready {
+.queues {
   display: flex;
   flex-direction: row;
   min-height: 200px;
+  align-self: center;
 }
 
-.ready div {
+.queues div {
   margin-right: 10px;
   padding: 5px;
   border: 1px solid black;
 }
 
-.readyItem {
+.queuesItem {
   border: 1px solid black;
   margin: 0;
   text-decoration: none;
@@ -167,13 +168,13 @@ main {
   margin-bottom: 2px;
 }
 
-.ready h4 {
+.queues h4 {
   margin: 0;
   padding-bottom: 5px;
   text-align: center;
 }
 
-.ready ul {
+.queues ul {
   display: flex;
   flex-direction: column;
   list-style-type: none;
