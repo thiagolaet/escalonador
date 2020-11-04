@@ -60,6 +60,7 @@ main {
 }
 
 #processesOutput {
+  box-sizing: border-box;
   height: 160px;
 }
 
@@ -160,6 +161,7 @@ main {
   padding: 0;
   background-color: cadetblue;
   align-self: center;
+  margin-bottom: 2px;
 }
 
 .ready h4 {

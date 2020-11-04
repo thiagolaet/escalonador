@@ -7,8 +7,9 @@ const ready1Output = document.getElementById('ready1');
 const ready2Output = document.getElementById('ready2');
 const ready3Output = document.getElementById('ready3');
 const priorityQueueOutput = document.getElementById('priorityQueue');
+const suspendedQueueOutput = document.getElementById('suspended');
 
-
+// Lista com os 4 objetos de CPU
 var CPUs = [
   {
     process: undefined,
@@ -36,9 +37,21 @@ var CPUs = [
   }
 ]
 
+// Timer do simulador e listas de processos
 var simulatorTime = 0;
 var processes = [];
 var finishedProcesses = [];
+
+// Listas e variável utilizadas para gerenciar a memória
+var freeMemory = [
+  {
+  start: 0,
+  size: 200
+}];
+var occupiedMemory = [];
+
+// Lista dos processos suspensos
+var suspended = [];
 
 // Fila dos processos sem prioridade (Feedback)
 var ready1 = [];
@@ -52,7 +65,7 @@ var priorityQueue = [];
 function start() {
 
   // Define quantos segundos cada loop do simulador irá durar (1000 = 1s)
-  const simulationTime = parseFloat(document.getElementById("timeInput").value) * 1000;
+  const t = parseFloat(document.getElementById("timeInput").value) * 1000;
 
   toggleClasses();
   var simulationLoop = setInterval(() => {    
@@ -61,7 +74,7 @@ function start() {
     updateQueues();
     checkEndSimulation(simulationLoop);
     updateTimer();
-  }, simulationTime);
+  }, t);
 }
 
 // Checa se ainda existem processos em execução ou para serem executados, se não tiver termina a simulação
@@ -75,24 +88,139 @@ function checkEndSimulation(simulationLoop) {
 // Compara os tempos de chegada do array de processos com o tempo atual do simulador e adiciona esses processos na primeira lista de prontos
 function checkProcesses() {
   while (processes.length > 0 && processes[0].arrivalTime <= simulatorTime) {
-    
-    processes[0].state = "pronto";
-    Interface.log(`O processo ${processes[0].name} saiu do estado de "Novo" e foi para o estado de "Pronto" em t = ${simulatorTime}.`);
 
-    // Decide a fila para onde o processo vai baseado na prioridade
-    if (processes[0].priority == 0) priorityQueue.push(processes[0]);
-    else ready1.push(processes[0]);
-  
+    allocated = false;
+
+    // Adicionando novo processo na memória
+    for (i = 0; i < freeMemory.length; i++) {
+      if (freeMemory[i].size >= processes[0].mBytes) {
+        allocateProcess(processes[0], i);
+        allocated = true;
+        break;
+      }
+    }
+
+    // Se não foi possível alocar o processo (prioridade 1) ele é enviado para a lista de suspensos
+    if (!allocated && processes[0].priority == 1) {
+      processes[0].state = "suspenso";
+      Interface.log(`O processo ${processes[0].name} saiu do estado de "Novo" e foi para o estado de "Suspenso" em t = ${simulatorTime}`)
+      suspended.push(processes[0]);
+    }
+
+    // Se não foi possivel alocar o processo (prioridade 0) é realizada uma troca
+    else if (!allocated && processes[0].priority == 0) {
+      console.log(`Processo X saiu da lista de prontos para a de suspensos devido à chegada do processo ${processes[0].name} de tempo real.`);
+      // substituteProcess(processes[0]);
+    }
+
+    // Se o processo foi alocado com sucesso, escolhe-se a fila para onde ele irá baseado em sua prioridade
+    else {
+      processes[0].state = "pronto";
+      Interface.log(`O processo ${processes[0].name} saiu do estado de "Novo" e foi para o estado de "Pronto" em t = ${simulatorTime}.`);
+
+      if (processes[0].priority == 0) priorityQueue.push(processes[0]);
+      else ready1.push(processes[0]);
+    }
+
+    // Retira o processo da lista de processos a serem alocados
     processes.shift();
   }
 }
+
+// Aloca o processo no bloco de memória encontrado previamente 
+function allocateProcess(process, freeIndex) {
+  // Adicionando o novo bloco de memória ocupado 
+  occupiedMemory.push({
+    process: process.name,
+    start: freeMemory[freeIndex].start,
+    size: process.mBytes
+  });
+
+  // Atualizando a lista de blocos livres
+  if (freeMemory[freeIndex].size == process.mBytes) {
+    freeMemory = freeMemory.filter(e => freeMemory.indexOf(e) != freeIndex);
+  }
+  else {
+    freeMemory[freeIndex].size -= process.mBytes;
+    freeMemory[freeIndex].start += process.mBytes;
+  }
+
+  console.log(`Alocando processo ${process.name} no espaço iniciado por ${occupiedMemory[occupiedMemory.length - 1].start} ocupando ${occupiedMemory[occupiedMemory.length - 1].size} em t = ${simulatorTime}`);
+}
+
+// Desaloca um processo da memória e atualiza a lista de blocos livres
+function deallocateProcess(process) {
+
+  console.log("Desalocando processo: ", process.name);
+
+  let deallocated = 0;
+
+  // Percorrendo a lista de blocos ocupados até achar o processo
+  let index;
+  for (i = 0; i < occupiedMemory.length; i++) {
+    if (process.name == occupiedMemory[i].process) {
+      index = i;
+      break;
+    }
+  }
+
+  // Percorrendo a lista de blocos ocupados para formar o novo bloco
+  for (i = 0; i < freeMemory.length; i++) {
+    
+    // Se o bloco de ocupado está logo antes de um bloco livre
+    if (freeMemory[i].start - occupiedMemory[index].size == occupiedMemory[index].start) {
+      freeMemory[i].start = occupiedMemory[index].start;
+      freeMemory[i].size += occupiedMemory[index].size;
+      occupiedMemory = occupiedMemory.filter(e => occupiedMemory.indexOf(e) != index);
+      console.log(`1 Desalocando processo ${process.name} em t = ${simulatorTime} criando o espaço de memoria iniciado em ${freeMemory[i].start} de ${freeMemory[i].size}`);
+      deallocated = 1;
+      break;
+    }
+
+    // Se o bloco de ocupado está logo depois do bloco livre
+    else if (freeMemory[i].start + freeMemory[i].size == occupiedMemory[index].start) {
+      freeMemory[i].size += occupiedMemory[index].size;
+      occupiedMemory = occupiedMemory.filter(e => occupiedMemory.indexOf(e) != index);
+      console.log(`2 Desalocando processo ${process.name} em t = ${simulatorTime} criando o espaço de memoria iniciado em ${freeMemory[i].start} de ${freeMemory[i].size}`);
+      deallocated = 1;
+      break;
+    } 
+  }
+
+  // Se o bloco de memória não tem vizinhos livres, cria-se um novo bloco de livres
+  if (!deallocated) {
+    freeMemory.push({
+      start: occupiedMemory[index].start,
+      size: occupiedMemory[index].size
+    });
+    occupiedMemory = occupiedMemory.filter(e => occupiedMemory.indexOf(e) != index);
+
+    console.log(`3 Desalocando processo ${process.name} em t = ${simulatorTime} criando o espaço de memoria iniciado em ${freeMemory[freeMemory.length-1].start} de ${freeMemory[freeMemory.length-1].size}`);
+  }
+
+  // Ordenando a lista de livres pelo endereço do começo do bloco
+   freeMemory.sort((a, b) => {
+    return a.start - b.start;
+  });
+
+  // Buscando blocos seguidos de livres que podem surgir
+  if (freeMemory.length > 1){
+    for (i = 0; i < freeMemory.length - 1; i++) {
+      if (freeMemory[i].start + freeMemory[i].size == freeMemory[i+1].start) {
+        freeMemory[i].size += freeMemory[i+1].size;
+        freeMemory = freeMemory.filter((e, j) => j != i+1);
+        break;
+      };
+    }
+  }
+}
+
 
 // Atualiza o timer
 function updateTimer() {
   timer.textContent = `Tempo: ${simulatorTime}`;
   simulatorTime += 1;
 }
-
 
 // Escalonador de processos
 function updateCPUs() {
@@ -108,6 +236,7 @@ function updateCPUs() {
         Interface.log(`O processo ${CPU.process.name} saiu do estado "Executando" para o estado "Finalizado" em t = ${simulatorTime - 1}.`);
         CPU.process.state = "finalizado";
         CPU.process.endTime = simulatorTime - 1;
+        deallocateProcess(CPU.process);
         finishedProcesses.push(CPU.process);
         resetCpu(CPU);
       }
@@ -246,6 +375,14 @@ function updateQueues() {
     li.classList.add('readyItem');
     li.textContent = e.name;
     priorityQueueOutput.appendChild(li);
+  });
+
+  suspendedQueueOutput.innerHTML = '';
+  suspended.forEach(e => {
+    let li = document.createElement('li');
+    li.classList.add('readyItem');
+    li.textContent = e.name;
+    suspendedQueueOutput.appendChild(li);
   });
 }
 
