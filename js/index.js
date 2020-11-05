@@ -318,10 +318,10 @@ function updateCPUs() {
 
       // Se o processo chegou ao final de sua execução
       if (CPU.process.remainingTime <= 0) {
-        if (infoMode) Interface.log(`O processo ${CPU.process.name} terminou na CPU ${index+1} em t = ${simulatorTime - 1}.`);
-        Interface.log(`O processo ${CPU.process.name} saiu do estado "Executando" para o estado "Finalizado" em t = ${simulatorTime - 1}.`);
+        if (infoMode) Interface.log(`O processo ${CPU.process.name} terminou na CPU ${index+1} em t = ${simulatorTime}.`);
+        Interface.log(`O processo ${CPU.process.name} saiu do estado "Executando" para o estado "Finalizado" em t = ${simulatorTime}.`);
         CPU.process.state = "finalizado";
-        CPU.process.endTime = simulatorTime - 1;
+        CPU.process.endTime = simulatorTime;
         deallocateProcess(CPU.process);
         finishedProcesses.push(CPU.process);
         resetCpu(CPU);
@@ -330,8 +330,8 @@ function updateCPUs() {
       // Se o processo chegou no quantum
       else if (CPU.quantumCounter == 2) {
 
-        if (infoMode) Interface.log(`O processo ${CPU.process.name} liberou a CPU ${index+1} em razão do quantum em t = ${simulatorTime - 1}.`);
-        Interface.log(`O processo ${CPU.process.name} saiu do estado "Executando" para o estado "Pronto" em t = ${simulatorTime -1 }.`);
+        if (infoMode) Interface.log(`O processo ${CPU.process.name} liberou a CPU ${index+1} em razão do quantum em t = ${simulatorTime}.`);
+        Interface.log(`O processo ${CPU.process.name} saiu do estado "Executando" para o estado "Pronto" em t = ${simulatorTime}.`);
         CPU.process.state = "pronto";
 
         // Enviando o processo pra lista n+1 (sendo n a lista de onde ele veio)

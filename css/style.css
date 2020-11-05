@@ -13,6 +13,7 @@ body {
 main {
   margin: 20px 0;
   align-self: center;
+  min-height: 480px;
   border-radius: 30px;
   box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.3);
   width: 960px;
