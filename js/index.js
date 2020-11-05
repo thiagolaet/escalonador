@@ -66,11 +66,15 @@ var ready3 = [];
 // Fila dos processos de tempo real (FCFS)
 var priorityQueue = [];
 
+var infoMode;
+
 // Inicia o simulador
 function start() {
 
   // Define quantos segundos cada loop do simulador irá durar (1000 = 1s)
   const t = parseFloat(document.getElementById("timeInput").value) * 1000;
+
+  infoMode = parseInt(document.querySelector('input[name="infoMode"]:checked').value);
 
   toggleClasses();
   var simulationLoop = setInterval(() => {    
@@ -101,7 +105,7 @@ function checkSuspended() {
         // Buscando um espaço livre onde o processo caiba
         for (i = 0; i < freeMemory.length; i++) {
             if (freeMemory[i].size >= suspended[0].mBytes) {
-              Interface.log(`O processo ${suspended[0].name} saiu do estado "Suspenso" para o estado "Pronto".`);
+              Interface.log(`O processo ${suspended[0].name} saiu do estado "Suspenso" para o estado "Pronto" em t = ${simulatorTime}.`);
               suspended[0].state = 'pronto';
               allocateProcess(suspended[0], i);
               ready1.push(suspended[0]);
@@ -147,11 +151,11 @@ function checkProcesses() {
       Interface.log(`O processo ${processes[0].name} saiu do estado de "Novo" e foi para o estado de "Pronto" em t = ${simulatorTime}.`);
 
       if (processes[0].priority == 0) {
-        Interface.log(`O processo ${processes[0].name} chegou na fila de prioridade em t = ${simulatorTime}.`);
+        if (infoMode) Interface.log(`O processo ${processes[0].name} chegou na fila de prioridade em t = ${simulatorTime}.`);
         priorityQueue.push(processes[0]);
       }
       else {
-        Interface.log(`O processo ${processes[0].name} chegou na fila de prontos 1 em t = ${simulatorTime}.`);
+        if (infoMode) Interface.log(`O processo ${processes[0].name} chegou na fila de prontos 1 em t = ${simulatorTime}.`);
         ready1.push(processes[0]);
       }
     }
@@ -179,7 +183,7 @@ function allocateProcess(process, freeIndex) {
     freeMemory[freeIndex].start += process.mBytes;
   }
 
-  Interface.log(`O processo ${process.name} foi alocado no bloco de memória iniciado em ${occupiedMemory[occupiedMemory.length - 1].start} e com tamanho de ${occupiedMemory[occupiedMemory.length - 1].size}MBytes em t = ${simulatorTime}.`);
+  if (infoMode) Interface.log(`O processo ${process.name} foi alocado no bloco de memória iniciado em ${occupiedMemory[occupiedMemory.length - 1].start} e com tamanho de ${occupiedMemory[occupiedMemory.length - 1].size}MBytes em t = ${simulatorTime}.`);
 }
 
 // Desaloca um processo da memória e atualiza a lista de blocos livres
@@ -204,7 +208,7 @@ function deallocateProcess(process) {
       freeMemory[i].start = occupiedMemory[index].start;
       freeMemory[i].size += occupiedMemory[index].size;
       occupiedMemory = occupiedMemory.filter(e => occupiedMemory.indexOf(e) != index);
-      Interface.log(`O processo ${process.name} foi desalocado da memória, criando o bloco livre iniciado em ${freeMemory[i].start} de ${freeMemory[i].size}MBytes em t = ${simulatorTime}.`);
+      if (infoMode) Interface.log(`O processo ${process.name} foi desalocado da memória, criando o bloco livre iniciado em ${freeMemory[i].start} de ${freeMemory[i].size}MBytes em t = ${simulatorTime}.`);
       // console.log(`1 Desalocando processo ${process.name} em t = ${simulatorTime} criando o espaço de memoria iniciado em ${freeMemory[i].start} de ${freeMemory[i].size}`);
       deallocated = 1;
       break;
@@ -214,7 +218,7 @@ function deallocateProcess(process) {
     else if (freeMemory[i].start + freeMemory[i].size == occupiedMemory[index].start) {
       freeMemory[i].size += occupiedMemory[index].size;
       occupiedMemory = occupiedMemory.filter(e => occupiedMemory.indexOf(e) != index);
-      Interface.log(`O processo ${process.name} foi desalocado da memória, criando o bloco livre iniciado em ${freeMemory[i].start} de ${freeMemory[i].size}MBytes em t = ${simulatorTime}.`);
+      if (infoMode) Interface.log(`O processo ${process.name} foi desalocado da memória, criando o bloco livre iniciado em ${freeMemory[i].start} de ${freeMemory[i].size}MBytes em t = ${simulatorTime}.`);
       // console.log(`2 Desalocando processo ${process.name} em t = ${simulatorTime} criando o espaço de memoria iniciado em ${freeMemory[i].start} de ${freeMemory[i].size}`);
       deallocated = 1;
       break;
@@ -229,7 +233,7 @@ function deallocateProcess(process) {
     });
     occupiedMemory = occupiedMemory.filter(e => occupiedMemory.indexOf(e) != index);
 
-    Interface.log(`O processo ${process.name} foi desalocado da memória, criando o bloco livre iniciado em ${freeMemory[freeMemory.length-1].start} de ${freeMemory[freeMemory.length-1].size}MBytes em t = ${simulatorTime}.`);
+    if (infoMode) Interface.log(`O processo ${process.name} foi desalocado da memória, criando o bloco livre iniciado em ${freeMemory[freeMemory.length-1].start} de ${freeMemory[freeMemory.length-1].size}MBytes em t = ${simulatorTime}.`);
     // console.log(`3 Desalocando processo ${process.name} em t = ${simulatorTime} criando o espaço de memoria iniciado em ${freeMemory[freeMemory.length-1].start} de ${freeMemory[freeMemory.length-1].size}`);
   }
 
@@ -314,7 +318,7 @@ function updateCPUs() {
 
       // Se o processo chegou ao final de sua execução
       if (CPU.process.remainingTime <= 0) {
-        Interface.log(`O processo ${CPU.process.name} terminou na CPU ${index+1} em t = ${simulatorTime - 1}.`);
+        if (infoMode) Interface.log(`O processo ${CPU.process.name} terminou na CPU ${index+1} em t = ${simulatorTime - 1}.`);
         Interface.log(`O processo ${CPU.process.name} saiu do estado "Executando" para o estado "Finalizado" em t = ${simulatorTime - 1}.`);
         CPU.process.state = "finalizado";
         CPU.process.endTime = simulatorTime - 1;
@@ -326,8 +330,8 @@ function updateCPUs() {
       // Se o processo chegou no quantum
       else if (CPU.quantumCounter == 2) {
 
-        Interface.log(`O processo ${CPU.process.name} liberou a CPU ${index+1} em razão do quantum em t = ${simulatorTime - 1}.`);
-        Interface.log(`O processo ${CPU.process.name} saiu do estado "Executando" para o estado "Pronto" em t = ${simulatorTime - 1}.`);
+        if (infoMode) Interface.log(`O processo ${CPU.process.name} liberou a CPU ${index+1} em razão do quantum em t = ${simulatorTime - 1}.`);
+        Interface.log(`O processo ${CPU.process.name} saiu do estado "Executando" para o estado "Pronto" em t = ${simulatorTime -1 }.`);
         CPU.process.state = "pronto";
 
         // Enviando o processo pra lista n+1 (sendo n a lista de onde ele veio)
@@ -357,13 +361,13 @@ function updateCPUs() {
         CPU.output.classList.add('activeProcess');
         CPU.quantumCounter = 1;
         CPU.process.remainingTime -= 1;
-        Interface.log(`O processo ${CPU.process.name} chegou da fila de prioridade na CPU ${index+1} em t = ${simulatorTime}.`);
+        if (infoMode) (`O processo ${CPU.process.name} chegou da fila de prioridade na CPU ${index+1} em t = ${simulatorTime}.`);
         Interface.log(`O processo ${CPU.process.name} saiu do estado de "Pronto" para o estado de "Executando" em t = ${simulatorTime}.`)
       }
 
       // Se tem processo na CPU e a prioridade dele é inferior
       else if (CPU.process && CPU.process.priority == 1) {
-        Interface.log(`O processo ${CPU.process.name} liberou a CPU ${index+1} em função da chegada do processo ${priorityQueue[0].name} de maior prioridade em t = ${simulatorTime}.`);
+        if (infoMode) Interface.log(`O processo ${CPU.process.name} liberou a CPU ${index+1} em função da chegada do processo ${priorityQueue[0].name} de maior prioridade em t = ${simulatorTime}.`);
         Interface.log(`O processo ${CPU.process.name} saiu do estado "Executando" para o estado "Pronto" em t = ${simulatorTime}.`);
 
         CPU.process.state = "pronto";
@@ -379,7 +383,7 @@ function updateCPUs() {
         CPU.output.classList.add('activeProcess');
         CPU.quantumCounter = 1;
         CPU.process.remainingTime -= 1;
-        Interface.log(`O processo ${CPU.process.name} chegou da fila de prioridade na CPU ${index+1} em t = ${simulatorTime}.`);
+        if (infoMode) Interface.log(`O processo ${CPU.process.name} chegou da fila de prioridade na CPU ${index+1} em t = ${simulatorTime}.`);
         Interface.log(`O processo ${CPU.process.name} saiu do estado "Pronto" para o estado "Executando" em t = ${simulatorTime}.`);
         CPU.process.state = "executando";
       }
@@ -410,7 +414,7 @@ function updateCPUs() {
       CPU.quantumCounter = 1;
       CPU.process.remainingTime -= 1;
 
-      Interface.log(`O processo ${CPU.process.name} chegou da fila ${CPU.lastQueue} de prontos na CPU ${index+1} em t = ${simulatorTime}.`);
+      if (infoMode) Interface.log(`O processo ${CPU.process.name} chegou da fila ${CPU.lastQueue} de prontos na CPU ${index+1} em t = ${simulatorTime}.`);
       Interface.log(`O processo ${CPU.process.name} saiu do estado "Pronto" para o estado "Executando" em t = ${simulatorTime}.`);
 
     }

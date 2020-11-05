@@ -19,6 +19,13 @@
         <label for="timeInput">Selecione o valor de cada unidade de tempo (t) em segundos:</label>
         <input id="timeInput" type="number" min="0" max="10" step="0.1" value="1">
       </div>
+      <span>Selecione o modo de exibição do console: </span>
+      <div style="margin-bottom: 10px; margin-left: 10px">
+        <input type="radio" id="deactiveInfoMode" name="infoMode" value="0" checked="true">
+        <label for="deactiveInfoMode">Informações simplificadas (exibe apenas as trocas de estado)</label><br>    
+        <input type="radio" id="activeInfoMode" name="infoMode" value="0">
+        <label for="activeInfoMode">Modelo detalhado (exibe todas as informações disponíveis)</label><br>
+      </div>
       <input id="fileInput" type="file">
       <div id="processesOutput" class="hidden logField"></div>
       <button onclick="start()">Começar</button>
