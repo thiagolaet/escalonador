@@ -1,14 +1,7 @@
-const menuDiv = document.querySelector('.menu');
-const simulatorDiv = document.querySelector('.simulator');
+// Inicializando as constantes dos elementos HTML
 const outputDiv = document.getElementById('processesOutput');
 const fileInput = document.getElementById('fileInput');
 const timer = document.getElementById('timer');
-const ready1Output = document.getElementById('ready1');
-const ready2Output = document.getElementById('ready2');
-const ready3Output = document.getElementById('ready3');
-const priorityQueueOutput = document.getElementById('priorityQueue');
-const suspendedQueueOutput = document.getElementById('suspended');
-const memoryOutput = document.getElementById('memoryOutput');
 
 // Lista com os 4 objetos de CPU
 var CPUs = [
@@ -68,21 +61,75 @@ var priorityQueue = [];
 
 var infoMode;
 
+// Altera a lista de processos quando é recebido um novo input de arquivo
+fileInput.addEventListener('change', function() { 
+  var fr=new FileReader(); 
+  fr.onload=function(){ 
+    fillProcesses(fr.result);
+  } 
+  outputDiv.classList.remove('hidden');
+    
+  fr.readAsText(this.files[0]); 
+});
+
+// Classe processo
+class Process {
+  constructor (id, arrivalTime, priority, processorTime, size, printer, disk) {
+    // Informações advindas do arquivo de entrada
+    this.arrivalTime = parseInt(arrivalTime);
+    this.priority = parseInt(priority);
+    this.processorTime = parseInt(processorTime);
+    this.size = parseInt(size);
+    this.printer = parseInt(printer);
+    this.disk = parseInt(disk);
+
+    // Informações para controle do processo dentro do sistema
+    this.id = id;
+    this.name = `P${id}`;
+    this.state = "novo";
+    this.remainingTime = parseInt(processorTime);
+  }
+}
+
+// Preenche a lista de objetos processos e atualiza o output relativo a eles no menu
+function fillProcesses(text) {
+  // Filtrando o input recebido pelo arquivo de texto
+  processes = text.split('\n').filter((e) => e.length >= 6);
+
+  // Ordenando os processos por arrivalTime
+  processes.sort((a, b) => {
+    return parseInt(a[0]) - parseInt(b[0]);
+  });
+
+  // Transformando os processos da lista em objetos "Process"
+  for(i=0;i<processes.length;i++) {
+    processes[i] = processes[i].replaceAll(' ', '');
+    processes[i] = processes[i].split(',');
+
+    // Criando o novo objeto de processo
+    processes[i] = new Process(i, processes[i][0], processes[i][1], processes[i][2], processes[i][3], processes[i][4], processes[i][5]);
+
+    // Atualizando o output do menu
+    outputDiv.innerHTML += `${processes[i].name}: ${processes[i].arrivalTime}, ${processes[i].priority}, ${processes[i].processorTime}, ${processes[i].size}, ${processes[i].printer}, ${processes[i].disk}<br><br>`;
+  }
+}
+
 // Inicia o simulador
 function start() {
 
   // Define quantos segundos cada loop do simulador irá durar (1000 = 1s)
   const t = parseFloat(document.getElementById("timeInput").value) * 1000;
 
+  // Pega o modo de exibição de informações escolhido
   infoMode = parseInt(document.querySelector('input[name="infoMode"]:checked').value);
 
-  toggleClasses();
+  Interface.changeView();
   var simulationLoop = setInterval(() => {    
     checkSuspended();
     checkProcesses();
     updateCPUs();
-    updateQueues();
-    updateMemory();
+    Interface.updateQueues();
+    Interface.updateMemory();
     checkEndSimulation(simulationLoop);
     updateTimer();
   }, t);
@@ -104,7 +151,7 @@ function checkSuspended() {
         swapped = false;
         // Buscando um espaço livre onde o processo caiba
         for (i = 0; i < freeMemory.length; i++) {
-            if (freeMemory[i].size >= suspended[0].mBytes) {
+            if (freeMemory[i].size >= suspended[0].size) {
               Interface.log(`O processo ${suspended[0].name} saiu do estado "Suspenso" para o estado "Pronto" em t = ${simulatorTime}.`);
               suspended[0].state = 'pronto';
               allocateProcess(suspended[0], i);
@@ -125,7 +172,7 @@ function checkProcesses() {
 
     // Adicionando novo processo na memória
     for (i = 0; i < freeMemory.length; i++) {
-      if (freeMemory[i].size >= processes[0].mBytes) {
+      if (freeMemory[i].size >= processes[0].size) {
         allocateProcess(processes[0], i);
         allocated = true;
         break;
@@ -171,16 +218,16 @@ function allocateProcess(process, freeIndex) {
   occupiedMemory.push({
     process: process.id,
     start: freeMemory[freeIndex].start,
-    size: process.mBytes
+    size: process.size
   });
 
   // Atualizando a lista de blocos livres
-  if (freeMemory[freeIndex].size == process.mBytes) {
+  if (freeMemory[freeIndex].size == process.size) {
     freeMemory = freeMemory.filter(e => freeMemory.indexOf(e) != freeIndex);
   }
   else {
-    freeMemory[freeIndex].size -= process.mBytes;
-    freeMemory[freeIndex].start += process.mBytes;
+    freeMemory[freeIndex].size -= process.size;
+    freeMemory[freeIndex].start += process.size;
   }
 
   if (infoMode) Interface.log(`O processo ${process.name} foi alocado no bloco de memória iniciado em ${occupiedMemory[occupiedMemory.length - 1].start} e com tamanho de ${occupiedMemory[occupiedMemory.length - 1].size}MBytes em t = ${simulatorTime}.`);
@@ -261,52 +308,6 @@ function updateTimer() {
   simulatorTime += 1;
 }
 
-// Atualiza a visualização da memória
-function updateMemory() {
-
-    memoryOutput.innerHTML = '';
-
-    occupiedMemory.forEach(mBlock => {
-      let box = document.createElement('div');
-
-      if (mBlock.size/20 > 20) {
-          let text = document.createElement('span');
-          text.textContent = `P${mBlock.process}`;
-          text.style.fontWeight = 'bold';
-          text.style.alignSelf = 'center';
-          text.style.fontSize = '12px';
-          box.style.display = 'flex';
-          box.style.justifyContent = 'center';
-          box.appendChild(text);
-      }
-
-      // Dividindo por 20 porque a memória é de 16GB e estamos utilizando 800px para representar
-      box.style.width = `${mBlock.size /20}px`;
-      box.style.height = '72px';
-      box.style.boxSizing = 'border-box';
-      box.style.border = '1px solid black';
-      box.style.backgroundColor = 'cadetblue';
-      box.style.position = 'absolute';
-      box.style.left = `${mBlock.start/20}px`;
-      box.style.alignSelf = 'center';
-      memoryOutput.appendChild(box);
-    });
-
-    freeMemory.forEach(mBlock => {
-      let box = document.createElement('div');
-
-      // Dividindo por 20 porque a memória é de 16GB e estamos utilizando 800px para representar
-      box.style.width = `${mBlock.size /20}px`;
-      box.style.height = '72px';
-      box.style.boxSizing = 'border-box';
-      box.style.border = '1px solid black';
-      box.style.backgroundColor = '#2C4251';
-      box.style.position = 'absolute';
-      box.style.left = `${mBlock.start/20}px`;
-      box.style.alignSelf = 'center';
-      memoryOutput.appendChild(box);
-  });
-}
 
 // Escalonador de processos
 function updateCPUs() {
@@ -429,117 +430,88 @@ function resetCpu(cpu) {
   cpu.output.innerHTML = '';
 }
 
-// Atualiza as filas de pronto
-// Tratar essa repetição de código mais tarde
-function updateQueues() {
-  ready1Output.innerHTML = '';
-  ready1.forEach(e => {
-    let li = document.createElement('li');
-    li.classList.add('queuesItem')
-    li.textContent = e.name;
-    ready1Output.appendChild(li);
-  });
-
-  ready2Output.innerHTML = '';
-  ready2.forEach(e => {
-    let li = document.createElement('li');
-    li.classList.add('queuesItem')
-    li.textContent = e.name;
-    ready2Output.appendChild(li);
-  });
-
-  ready3Output.innerHTML = '';
-  ready3.forEach(e => {
-    let li = document.createElement('li');
-    li.classList.add('queuesItem')
-    li.textContent = e.name;
-    ready3Output.appendChild(li);
-  });
-
-  priorityQueueOutput.innerHTML = '';
-  priorityQueue.forEach(e => {
-    let li = document.createElement('li');
-    li.classList.add('queuesItem');
-    li.textContent = e.name;
-    priorityQueueOutput.appendChild(li);
-  });
-
-  suspendedQueueOutput.innerHTML = '';
-  suspended.forEach(e => {
-    let li = document.createElement('li');
-    li.classList.add('queuesItem');
-    li.textContent = e.name;
-    suspendedQueueOutput.appendChild(li);
-  });
-}
-
-// Altera entre a visualização do menu e do simulador
-function toggleClasses() {
-  menuDiv.classList.toggle('hidden');
-  simulatorDiv.classList.toggle('hidden');
-}
-
-// Preenche a lista de objetos processos e atualiza o output relativo a eles no menu
-function fillProcesses(text) {
-
-  // Filtrando o input recebido pelo arquivo de texto
-  processes = text.split('\n').filter((e) => e.length >= 6);
-
-  // Inicializando a string que irá receber o texto para o output
-  let outputText = '';
-  
-  // Transformando os processos da lista em objetos (facilita a leitura)
-  for(i=0;i<processes.length;i++) {
-    processes[i] = processes[i].replaceAll(' ', '');
-    processes[i] = processes[i].split(',');
-    processes[i] = {
-      arrivalTime: parseInt(processes[i][0]),
-      priority: parseInt(processes[i][1]),
-      processorTime: parseInt(processes[i][2]),
-      remainingTime: parseInt(processes[i][2]),
-      mBytes: parseInt(processes[i][3]),
-      printer: parseInt(processes[i][4]),
-      disk: parseInt(processes[i][5]),
-      state: "novo"
-    }
-  }
-
-  // Ordenando os processos por arrivalTime
-  processes.sort((a, b) => {
-    return a.arrivalTime - b.arrivalTime;
-  });
-
-  // Nomeando os processos agora ordenados por arrival time e atualizando o output de processos
-  for (i=0; i<processes.length;i++) {
-    processes[i].id = i;
-    processes[i].name = `P${i}`;
-    outputText += `${processes[i].name}: ${processes[i].arrivalTime}, ${processes[i].priority}, ${processes[i].processorTime}, ${processes[i].mBytes}, ${processes[i].printer}, ${processes[i].disk}<br><br>`;
-  }
-  outputDiv.innerHTML=outputText;
-
-}
-
-// Altera a lista de processos quando é recebido um novo input de arquivo
-fileInput.addEventListener('change', function() { 
-  var fr=new FileReader(); 
-  fr.onload=function(){ 
-    fillProcesses(fr.result);
-  } 
-  outputDiv.classList.remove('hidden');
-    
-  fr.readAsText(this.files[0]); 
-});
-
 var Interface = {
-  output: document.getElementById('eventsOutput'),
+  // Altera a visualização do programa (menu->simulador)
+  outputMenu: document.querySelector('.menu'),
+  outputSimulator: document.querySelector('.simulator'),
+  changeView: function() {
+    Interface.outputMenu.classList.toggle('hidden');
+    Interface.outputSimulator.classList.toggle('hidden');
+  },
+  // Exibe a mensagem passada por parâmetro no console de eventos
+  eventsOutput: document.getElementById('eventsOutput'),
   log: function(text) {
     let p = document.createElement('p');
     p.textContent = text;
-    Interface.output.appendChild(p);
-    Interface.output.scroll({
-      top: Interface.output.scrollHeight,
+    Interface.eventsOutput.appendChild(p);
+    Interface.eventsOutput.scroll({
+      top: Interface.eventsOutput.scrollHeight,
       behavior: 'smooth'
+    });
+  },
+  // Atualiza a exibição dos elementos das filas
+  _updateQueue: function(queue, output) {
+    output.innerHTML = '';
+    queue.forEach(e => {
+      let li = document.createElement('li');
+      li.classList.add('queuesItem');
+      li.textContent = e.name;
+      output.appendChild(li);
+    });
+  },
+  outputPQ: document.getElementById('priorityQueue'),
+  outputR1Q: document.getElementById('ready1'),
+  outputR2Q: document.getElementById('ready2'),
+  outputR3Q: document.getElementById('ready3'),
+  outputBQ: document.getElementById('blocked'),
+  outputSQ: document.getElementById('suspended'),
+  outputSBQ: document.getElementById('suspended_blocked'),
+  updateQueues: function() {
+    Interface._updateQueue(priorityQueue, Interface.outputPQ);
+    Interface._updateQueue(ready1, Interface.outputR1Q);
+    Interface._updateQueue(ready2, Interface.outputR2Q);
+    Interface._updateQueue(ready3, Interface.outputR3Q);
+    Interface._updateQueue(suspended, Interface.outputBQ);
+    Interface._updateQueue(blocked, Interface.outputSQ);
+    Interface._updateQueue(suspendedBlocked, Interface.outputSBQ);
+  },
+  // Atualiza a exibição dos blocos de memória (utilizando divisão por 20 nos cálculos devido à escala utilizada)
+  outputM: document.getElementById('memoryOutput'),
+  _createBlock: function(mBlock, type) {
+    let box = document.createElement('div');
+    // Se for bloco de memória ocupada
+    if (type == 0) {
+      box.style.backgroundColor = 'cadetblue';
+      if (mBlock.size/20 > 20) {
+        let text = document.createElement('span');
+        text.textContent = `P${mBlock.process}`;
+        text.style.fontWeight = 'bold';
+        text.style.alignSelf = 'center';
+        text.style.fontSize = '12px';
+        box.style.display = 'flex';
+        box.style.justifyContent = 'center';
+        box.appendChild(text);
+      }
+    } 
+    else {
+      box.style.backgroundColor = '#2C4251';
+    }
+    box.style.width = `${mBlock.size /20}px`;
+    box.style.height = '72px';
+    box.style.boxSizing = 'border-box';
+    box.style.border = '1px solid black';
+    box.style.position = 'absolute';
+    box.style.left = `${mBlock.start/20}px`;
+    box.style.alignSelf = 'center';
+    Interface.outputM.appendChild(box);
+  },
+  updateMemory: function() {
+    Interface.outputM.innerHTML = '';
+    occupiedMemory.forEach(mBlock => {
+      Interface._createBlock(mBlock, 0);
+    });
+    freeMemory.forEach(mBlock => {
+      Interface._createBlock(mBlock, 1);
     });
   }
 };
-
