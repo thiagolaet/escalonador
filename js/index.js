@@ -255,7 +255,6 @@ function deallocateProcess(process) {
       freeMemory[i].size += occupiedMemory[index].size;
       occupiedMemory = occupiedMemory.filter(e => occupiedMemory.indexOf(e) != index);
       if (infoMode) Interface.log(`O processo ${process.name} foi desalocado da memória, criando o bloco livre iniciado em ${freeMemory[i].start} de ${freeMemory[i].size}MBytes em t = ${simulatorTime}.`);
-      // console.log(`1 Desalocando processo ${process.name} em t = ${simulatorTime} criando o espaço de memoria iniciado em ${freeMemory[i].start} de ${freeMemory[i].size}`);
       deallocated = 1;
       break;
     }
@@ -265,7 +264,6 @@ function deallocateProcess(process) {
       freeMemory[i].size += occupiedMemory[index].size;
       occupiedMemory = occupiedMemory.filter(e => occupiedMemory.indexOf(e) != index);
       if (infoMode) Interface.log(`O processo ${process.name} foi desalocado da memória, criando o bloco livre iniciado em ${freeMemory[i].start} de ${freeMemory[i].size}MBytes em t = ${simulatorTime}.`);
-      // console.log(`2 Desalocando processo ${process.name} em t = ${simulatorTime} criando o espaço de memoria iniciado em ${freeMemory[i].start} de ${freeMemory[i].size}`);
       deallocated = 1;
       break;
     } 
@@ -280,7 +278,6 @@ function deallocateProcess(process) {
     occupiedMemory = occupiedMemory.filter(e => occupiedMemory.indexOf(e) != index);
 
     if (infoMode) Interface.log(`O processo ${process.name} foi desalocado da memória, criando o bloco livre iniciado em ${freeMemory[freeMemory.length-1].start} de ${freeMemory[freeMemory.length-1].size}MBytes em t = ${simulatorTime}.`);
-    // console.log(`3 Desalocando processo ${process.name} em t = ${simulatorTime} criando o espaço de memoria iniciado em ${freeMemory[freeMemory.length-1].start} de ${freeMemory[freeMemory.length-1].size}`);
   }
 
   // Ordenando a lista de livres pelo endereço do começo do bloco
