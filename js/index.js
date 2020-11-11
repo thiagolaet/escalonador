@@ -1,5 +1,4 @@
 // Inicializando as constantes dos elementos HTML
-const outputDiv = document.getElementById('processesOutput');
 const fileInput = document.getElementById('fileInput');
 const timer = document.getElementById('timer');
 
@@ -67,7 +66,7 @@ fileInput.addEventListener('change', function() {
   fr.onload=function(){ 
     fillProcesses(fr.result);
   } 
-  outputDiv.classList.remove('hidden');
+  Interface.outputP.classList.remove('hidden');
     
   fr.readAsText(this.files[0]); 
 });
@@ -110,7 +109,7 @@ function fillProcesses(text) {
     processes[i] = new Process(i, processes[i][0], processes[i][1], processes[i][2], processes[i][3], processes[i][4], processes[i][5]);
 
     // Atualizando o output do menu
-    outputDiv.innerHTML += `${processes[i].name}: ${processes[i].arrivalTime}, ${processes[i].priority}, ${processes[i].processorTime}, ${processes[i].size}, ${processes[i].printer}, ${processes[i].disk}<br><br>`;
+    Interface.outputP.innerHTML += `${processes[i].name}: ${processes[i].arrivalTime}, ${processes[i].priority}, ${processes[i].processorTime}, ${processes[i].size}, ${processes[i].printer}, ${processes[i].disk}<br><br>`;
   }
 }
 
@@ -431,6 +430,8 @@ function resetCpu(cpu) {
 }
 
 var Interface = {
+  // Output dos processos no menu
+  outputP: document.getElementById('processesOutput'),
   // Altera a visualização do programa (menu->simulador)
   outputMenu: document.querySelector('.menu'),
   outputSimulator: document.querySelector('.simulator'),
@@ -471,8 +472,8 @@ var Interface = {
     Interface._updateQueue(ready1, Interface.outputR1Q);
     Interface._updateQueue(ready2, Interface.outputR2Q);
     Interface._updateQueue(ready3, Interface.outputR3Q);
-    Interface._updateQueue(suspended, Interface.outputBQ);
-    Interface._updateQueue(blocked, Interface.outputSQ);
+    Interface._updateQueue(suspended, Interface.outputSQ);
+    Interface._updateQueue(blocked, Interface.outputBQ);
     Interface._updateQueue(suspendedBlocked, Interface.outputSBQ);
   },
   // Atualiza a exibição dos blocos de memória (utilizando divisão por 20 nos cálculos devido à escala utilizada)
