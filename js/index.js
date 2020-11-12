@@ -124,13 +124,19 @@ function start() {
 
   Interface.changeView();
   var simulationLoop = setInterval(() => {    
-    checkSuspended();
-    checkProcesses();
-    updateCPUs();
-    Interface.updateQueues();
-    Interface.updateMemory();
-    checkEndSimulation(simulationLoop);
-    updateTimer();
+    try {
+      checkSuspended();
+      checkProcesses();
+      updateCPUs();
+      Interface.updateQueues();
+      Interface.updateMemory();
+      checkEndSimulation(simulationLoop);
+      updateTimer();
+    }
+    catch (e) {
+      console.error(e);
+      clearInterval(simulationLoop);
+    }
   }, t);
 }
 
@@ -151,7 +157,7 @@ function checkSuspended() {
         // Buscando um espaço livre onde o processo caiba
         for (i = 0; i < freeMemory.length; i++) {
             if (freeMemory[i].size >= suspended[0].size) {
-              Interface.log(`O processo ${suspended[0].name} saiu do estado "Suspenso" para o estado "Pronto" em t = ${simulatorTime}.`);
+              Interface.log(`O processo ${suspended[0].name} saiu do estado de "Suspenso" para o estado "Pronto" em t = ${simulatorTime}.`);
               suspended[0].state = 'pronto';
               allocateProcess(suspended[0], i);
               ready1.push(suspended[0]);
@@ -181,20 +187,23 @@ function checkProcesses() {
     // Se não foi possível alocar o processo (prioridade 1) ele é enviado para a lista de suspensos
     if (!allocated && processes[0].priority == 1) {
       processes[0].state = "suspenso";
-      Interface.log(`O processo ${processes[0].name} saiu do estado de "Novo" e foi para o estado de "Suspenso" em t = ${simulatorTime}`)
+      Interface.log(`O processo ${processes[0].name} saiu do estado "Novo" e foi para o estado de "Suspenso" em t = ${simulatorTime}`)
       suspended.push(processes[0]);
     }
 
     // Se não foi possivel alocar o processo (prioridade 0) é realizada uma troca
     else if (!allocated && processes[0].priority == 0) {
       console.log(`Processo X saiu da lista de prontos para a de suspensos devido à chegada do processo ${processes[0].name} de tempo real.`);
-      // substituteProcess(processes[0]);
+      if (!prioritySwap(processes[0])){
+        console.log(`Não foi possível alocar o processo ${processes[0]} de prioridade 0`);
+      }
+
     }
 
     // Se o processo foi alocado com sucesso, escolhe-se a fila para onde ele irá baseado em sua prioridade
     else {
       processes[0].state = "pronto";
-      Interface.log(`O processo ${processes[0].name} saiu do estado de "Novo" e foi para o estado de "Pronto" em t = ${simulatorTime}.`);
+      Interface.log(`O processo ${processes[0].name} saiu do estado "Novo" e foi para o estado de "Pronto" em t = ${simulatorTime}.`);
 
       if (processes[0].priority == 0) {
         if (infoMode) Interface.log(`O processo ${processes[0].name} chegou na fila de prioridade em t = ${simulatorTime}.`);
@@ -209,6 +218,68 @@ function checkProcesses() {
     // Retira o processo da lista de processos a serem alocados
     processes.shift();
   }
+}
+
+// Busca um processo de prioridade 1 nas filas para fazer Swapping out e dar espaço ao novo de prioridade 0
+function prioritySwap(process){
+  
+  let queues = [blocked, ready3, ready2, ready1];
+  
+  // Percorrendo as filas em busca de um processo para sofrer swapping-out
+  for (z = 0; z < queues.length; z++) {
+    for (j = 0; j < queues[z].length; j++) {
+      
+      // Se o processo encontrado tem tamanho maior que o que queremos alocar ele é retirado de memória
+      if (queues[z][j].size >= process.size) {
+        
+        // Se o processo está bloqueado deve ir para a fila de bloqueados-suspensos
+        if (z == 0) {
+          if (infomode) Interface.log(`O processo ${queues[z][j].name} saiu da fila de Bloqueados e foi enviado para a fila de Bloqueados/Suspensos para que o processo ${process.name} de prioridade superior pudesse ser alocado.`);
+          Interface.log(`O processo ${queues[z][j].name} saiu do estado "Bloqueado" para o estado "Bloqueado/Suspenso" em t = ${simulatorTime}`);
+          suspendedBlocked.push(queues[z][j]); 
+          queues[z][j].state = "bloqueado/suspenso";
+        }
+        // Caso o processo não esteja bloqueado, vai para a fila de suspensos
+        else {
+          if (infoMode) Interface.log(`O processo ${queues[z][j].name} saiu da fila de Prontos e foi enviado para a fila de Suspensos para que o processo ${process.name} de prioridade superior pudesse ser alocado.`);
+          Interface.log(`O processo ${queues[z][j].name} saiu do estado "Pronto" para o estado "Suspenso" em t = ${simulatorTime}`);
+          suspended.push(queues[z][j]);
+          queues[z][j].state = "suspenso";
+        }
+
+        deallocateProcess(queues[z][j]);
+        priorityQueue.push(process);
+
+        // Removendo o processo da 
+        switch (z) {
+          case 0:
+            blocked = blocked.filter(e => blocked.indexOf(e) != j);
+            break;
+          case 1:
+            ready3 = ready3.filter(e => ready3.indexOf(e) != j);
+            break;
+          case 2:
+            ready2 = ready2.filter(e => ready2.indexOf(e) != j);
+            break;
+          case 3:
+            ready1 = ready1.filter(e => ready1.indexOf(e) != j);
+            break;
+        }
+
+        // Adicionando novo processo na memória
+        for (k = 0; k < freeMemory.length; k++) {
+          if (freeMemory[k].size >= processes[0].size) {
+            allocateProcess(process, k);
+            break;
+          }
+        }
+
+        return true;
+      }
+    }
+  }
+
+  return false;
 }
 
 // Aloca o processo no bloco de memória encontrado previamente 
@@ -359,7 +430,7 @@ function updateCPUs() {
         CPU.quantumCounter = 1;
         CPU.process.remainingTime -= 1;
         if (infoMode) (`O processo ${CPU.process.name} chegou da fila de prioridade na CPU ${index+1} em t = ${simulatorTime}.`);
-        Interface.log(`O processo ${CPU.process.name} saiu do estado de "Pronto" para o estado de "Executando" em t = ${simulatorTime}.`)
+        Interface.log(`O processo ${CPU.process.name} saiu do estado "Pronto" para o estado de "Executando" em t = ${simulatorTime}.`)
       }
 
       // Se tem processo na CPU e a prioridade dele é inferior
