@@ -153,19 +153,16 @@ function checkEndSimulation(simulationLoop) {
 function checkSuspended() {
     let swapped = true;
     while (suspended.length > 0 && swapped == true) {
-        swapped = false;
-        // Buscando um espaço livre onde o processo caiba
-        for (i = 0; i < freeMemory.length; i++) {
-            if (freeMemory[i].size >= suspended[0].size) {
-              Interface.log(`O processo ${suspended[0].name} saiu do estado de "Suspenso" para o estado "Pronto" em t = ${simulatorTime}.`);
-              suspended[0].state = 'pronto';
-              allocateProcess(suspended[0], i);
-              ready1.push(suspended[0]);
-              suspended.shift();
-              swapped = true;
-              break;
-            }
-        }
+
+      swapped = allocateProcess(suspended[0]);
+
+      if (swapped) {
+        Interface.log(`O processo ${suspended[0].name} saiu do estado de "Suspenso" para o estado "Pronto" em t = ${simulatorTime}.`);
+        suspended[0].state = 'pronto';
+        ready1.push(suspended[0]);
+        suspended.shift();
+
+      }
     }
 }
 
@@ -173,16 +170,8 @@ function checkSuspended() {
 function checkProcesses() {
   while (processes.length > 0 && processes[0].arrivalTime <= simulatorTime) {
 
-    allocated = false;
-
     // Adicionando novo processo na memória
-    for (i = 0; i < freeMemory.length; i++) {
-      if (freeMemory[i].size >= processes[0].size) {
-        allocateProcess(processes[0], i);
-        allocated = true;
-        break;
-      }
-    }
+    allocated = allocateProcess(processes[0]);
 
     // Se não foi possível alocar o processo (prioridade 1) ele é enviado para a lista de suspensos
     if (!allocated && processes[0].priority == 1) {
@@ -193,7 +182,6 @@ function checkProcesses() {
 
     // Se não foi possivel alocar o processo (prioridade 0) é realizada uma troca
     else if (!allocated && processes[0].priority == 0) {
-      console.log(`Processo X saiu da lista de prontos para a de suspensos devido à chegada do processo ${processes[0].name} de tempo real.`);
       if (!prioritySwap(processes[0])){
         console.log(`Não foi possível alocar o processo ${processes[0]} de prioridade 0`);
       }
@@ -267,12 +255,7 @@ function prioritySwap(process){
         }
 
         // Adicionando novo processo na memória
-        for (k = 0; k < freeMemory.length; k++) {
-          if (freeMemory[k].size >= processes[0].size) {
-            allocateProcess(process, k);
-            break;
-          }
-        }
+        allocateProcess(process);
 
         return true;
       }
@@ -282,25 +265,44 @@ function prioritySwap(process){
   return false;
 }
 
+function brutePrioritySwap(process){
+
+}
+
 // Aloca o processo no bloco de memória encontrado previamente 
-function allocateProcess(process, freeIndex) {
+function allocateProcess(process) {
+  let empty = -1;
+
+  // Buscando um espaço de memória
+  for (i = 0; i < freeMemory.length; i++) {
+    if (freeMemory[i].size >= process.size) {
+      empty = i;
+      break;
+    }
+  }
+
+  // Caso não tenha encontrado espaço vazio
+  if (empty == -1) return false;
+
   // Adicionando o novo bloco de memória ocupado 
   occupiedMemory.push({
     process: process.id,
-    start: freeMemory[freeIndex].start,
+    start: freeMemory[empty].start,
     size: process.size
   });
 
   // Atualizando a lista de blocos livres
-  if (freeMemory[freeIndex].size == process.size) {
-    freeMemory = freeMemory.filter(e => freeMemory.indexOf(e) != freeIndex);
+  if (freeMemory[empty].size == process.size) {
+    freeMemory = freeMemory.filter(e => freeMemory.indexOf(e) != empty);
   }
   else {
-    freeMemory[freeIndex].size -= process.size;
-    freeMemory[freeIndex].start += process.size;
+    freeMemory[empty].size -= process.size;
+    freeMemory[empty].start += process.size;
   }
 
   if (infoMode) Interface.log(`O processo ${process.name} foi alocado no bloco de memória iniciado em ${occupiedMemory[occupiedMemory.length - 1].start} e com tamanho de ${occupiedMemory[occupiedMemory.length - 1].size}MBytes em t = ${simulatorTime}.`);
+
+  return true;
 }
 
 // Desaloca um processo da memória e atualiza a lista de blocos livres
