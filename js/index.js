@@ -153,15 +153,23 @@ function checkEndSimulation(simulationLoop) {
 function checkSuspended() {
     let swapped = true;
     while (suspended.length > 0 && swapped == true) {
-
       swapped = allocateProcess(suspended[0]);
-
       if (swapped) {
         Interface.log(`O processo ${suspended[0].name} saiu do estado de "Suspenso" para o estado "Pronto" em t = ${simulatorTime}.`);
         suspended[0].state = 'pronto';
         ready1.push(suspended[0]);
         suspended.shift();
 
+      }
+    }
+
+    while (suspendedBlocked.length > 0 && swapped == true) {
+      swapped = allocateProcess(suspendedBlocked[0]);
+      if (swapped) {
+        Interface.log(`O processo ${suspended[0].name} saiu do estado de "Suspenso" para o estado "Pronto" em t = ${simulatorTime}.`);
+        suspendedBlocked[0].state = 'pronto';
+        ready1.push(suspendedBlocked[0]);
+        suspendedBlocked.shift();
       }
     }
 }
