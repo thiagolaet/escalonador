@@ -96,23 +96,25 @@ function fillProcesses(text) {
   // Filtrando o input recebido pelo arquivo de texto
   processes = text.split('\n').filter((e) => e.length >= 6);
 
+  // Tratando as strings dos processos
+  for(i=0;i<processes.length;i++) {
+    processes[i] = processes[i].replaceAll(' ', '');
+    processes[i] = processes[i].split(',');
+  }
+
   // Ordenando os processos por arrivalTime
   processes.sort((a, b) => {
     return parseInt(a[0]) - parseInt(b[0]);
   });
 
-  // Transformando os processos da lista em objetos "Process"
+  // Criando a lista de processos e atualizando o output
   for(i=0;i<processes.length;i++) {
-    processes[i] = processes[i].replaceAll(' ', '');
-    processes[i] = processes[i].split(',');
-
     // Criando o novo objeto de processo
     processes[i] = new Process(i, processes[i][0], processes[i][1], processes[i][2], processes[i][3], processes[i][4], processes[i][5]);
 
     // Atualizando o output do menu
     Interface.outputP.innerHTML += `${processes[i].name}: ${processes[i].arrivalTime}, ${processes[i].priority}, ${processes[i].processorTime}, ${processes[i].size}, ${processes[i].printer}, ${processes[i].disk}<br><br>`;
-  }
-}
+  }}
 
 // Inicia o simulador
 function start() {
@@ -159,7 +161,7 @@ function checkSuspended() {
       if (swapped) {
         Interface.log(`O processo ${suspendedPriority[0].name} saiu do estado de "Suspenso" para o estado "Pronto" em t = ${simulatorTime}.`);
         suspendedPriority[0].state = 'pronto';
-        ready1.push(suspendedPriority[0]);
+        priorityQueue.push(suspendedPriority[0]);
         suspendedPriority.shift();
       }
     }

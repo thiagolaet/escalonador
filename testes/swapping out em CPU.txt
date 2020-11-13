@@ -1,0 +1,10 @@
+t = 8s
+objetivo: Testar o swapping out de processos de prioridade 1 em execução
+
+0, 1, 5, 7936, 0, 0
+
+0, 1, 5, 7936, 0, 0
+
+2, 0, 5, 512, 0, 0
+
+2, 0, 5, 512, 0, 0
