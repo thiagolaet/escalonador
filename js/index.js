@@ -159,7 +159,6 @@ function checkSuspended() {
         suspended[0].state = 'pronto';
         ready1.push(suspended[0]);
         suspended.shift();
-
       }
     }
 
@@ -232,14 +231,14 @@ function prioritySwap(process){
         
         // Se o processo está bloqueado deve ir para a fila de bloqueados-suspensos
         if (z == 0) {
-          if (infomode) Interface.log(`O processo ${queues[z][j].name} saiu da fila de Bloqueados e foi enviado para a fila de Bloqueados/Suspensos para que o processo ${process.name} de prioridade superior pudesse ser alocado.`);
+          if (infomode) Interface.log(`O processo ${queues[z][j].name} saiu da fila de Bloqueados e foi enviado para a fila de Bloqueados/Suspensos para que o processo ${process.name} de prioridade superior pudesse ser alocado em t = ${simulatorTime}.`);
           Interface.log(`O processo ${queues[z][j].name} saiu do estado "Bloqueado" para o estado "Bloqueado/Suspenso" em t = ${simulatorTime}`);
           suspendedBlocked.push(queues[z][j]); 
           queues[z][j].state = "bloqueado/suspenso";
         }
         // Caso o processo não esteja bloqueado, vai para a fila de suspensos
         else {
-          if (infoMode) Interface.log(`O processo ${queues[z][j].name} saiu da fila de Prontos e foi enviado para a fila de Suspensos para que o processo ${process.name} de prioridade superior pudesse ser alocado.`);
+          if (infoMode) Interface.log(`O processo ${queues[z][j].name} saiu da fila de Prontos e foi enviado para a fila de Suspensos para que o processo ${process.name} de prioridade superior pudesse ser alocado em t = ${simulatorTime}.`);
           Interface.log(`O processo ${queues[z][j].name} saiu do estado "Pronto" para o estado "Suspenso" em t = ${simulatorTime}`);
           suspended.push(queues[z][j]);
           queues[z][j].state = "suspenso";
@@ -288,19 +287,20 @@ function brutePrioritySwap(process){
   // Retirando os processos das filas com força bruta
   while (!allocated) {
 
-    while (queues[q].length == 0){
+    if (queues[q].length == 0) {
       q++;
       if (q == 4) break;
+      continue;
     }
 
     if (q == 0) {
-      if (infoMode) Interface.log(`O processo ${blocked[0].name} saiu da fila de Bloqueados e foi enviado para a fila de Bloqueados/Suspensos para que o processo ${process.name} de prioridade superior pudesse ser alocado.`);
+      if (infoMode) Interface.log(`O processo ${blocked[0].name} saiu da fila de Bloqueados e foi enviado para a fila de Bloqueados/Suspensos para que o processo ${process.name} de prioridade superior pudesse ser alocadoem t = ${simulatorTime}.`);
       Interface.log(`O processo ${blocked[0].name} saiu do estado "Bloqueado" para o estado "Bloqueado/Suspenso" em t = ${simulatorTime}`);
       suspendedBlocked.push(queues[q][0]);
       queues[q][0].state = 'bloqueado/suspenso';
     }
     else {
-      if (infoMode) Interface.log(`O processo ${queues[q][0].name} saiu da fila de Prontos e foi enviado para a fila de Suspensos para que o processo ${process.name} de prioridade superior pudesse ser alocado.`);
+      if (infoMode) Interface.log(`O processo ${queues[q][0].name} saiu da fila de Prontos e foi enviado para a fila de Suspensos para que o processo ${process.name} de prioridade superior pudesse ser alocadoem t = ${simulatorTime}.`);
       Interface.log(`O processo ${queues[q][0].name} saiu do estado "Pronto" para o estado "Suspenso" em t = ${simulatorTime}`);
       suspended.push(queues[q][0]);
       queues[q][0].state = 'suspenso';
@@ -308,6 +308,27 @@ function brutePrioritySwap(process){
 
     deallocateProcess(queues[q][0]);
     queues[q].shift();
+
+    allocated = allocateProcess(process);
+  }
+
+  // Se o processo não conseguiu ser alocado, checar as CPUs
+  let i = 0;
+  while (!allocated) {
+    if (i == 4) break;
+    if (CPUs[i].process == undefined || CPUs[i].process.priority == 0) {
+      i++;
+      continue;
+    };
+
+    if (infoMode) Interface.log(`O processo ${CPUs[i].process.name} liberou a CPU ${i + 1} e foi enviado para a fila de Suspensos para que o processo ${process.name} de prioridade superior pudesse ser alocado em t = ${simulatorTime}.`);
+    Interface.log(`O processo ${CPUs[i].process.name} saiu do estado "Executando" para o estado "Suspenso" em t = ${simulatorTime}.`);
+    CPUs[i].process.state = "suspenso";
+
+    // Enviando o processo pra lista n+1 (sendo n a lista de onde ele veio)
+    suspended.push(CPUs[i].process);
+    deallocateProcess(CPUs[i].process);
+    resetCpu(CPUs[i]);
 
     allocated = allocateProcess(process);
   }
@@ -320,8 +341,7 @@ function brutePrioritySwap(process){
     return true;
   }
 
-  // Se o processo não conseguiu ser alocado, checar as CPUs
-
+  return false;
 }
 
 // Aloca o processo no bloco de memória encontrado previamente 
@@ -450,6 +470,7 @@ function updateCPUs() {
         deallocateProcess(CPU.process);
         finishedProcesses.push(CPU.process);
         resetCpu(CPU);
+        checkSuspended();
       }
 
       // Se o processo chegou no quantum
