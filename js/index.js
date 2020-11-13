@@ -46,6 +46,7 @@ var occupiedMemory = [];
 // Lista dos processos suspensos
 var suspended = [];
 var suspendedBlocked = [];
+var suspendedPriority = [];
 
 // Lista dos processos bloqueados
 var blocked = [];
@@ -152,6 +153,17 @@ function checkEndSimulation(simulationLoop) {
 // Busca processos na lista de suspensos e faz swapping in até encontrar um processo que não faça
 function checkSuspended() {
     let swapped = true;
+    
+    while (suspendedPriority.length > 0 && swapped == true) {
+      swapped = allocateProcess(suspendedPriority[0]);
+      if (swapped) {
+        Interface.log(`O processo ${suspendedPriority[0].name} saiu do estado de "Suspenso" para o estado "Pronto" em t = ${simulatorTime}.`);
+        suspendedPriority[0].state = 'pronto';
+        ready1.push(suspendedPriority[0]);
+        suspendedPriority.shift();
+      }
+    }
+
     while (suspended.length > 0 && swapped == true) {
       swapped = allocateProcess(suspended[0]);
       if (swapped) {
@@ -191,7 +203,9 @@ function checkProcesses() {
     else if (!allocated && processes[0].priority == 0) {
       if (!prioritySwap(processes[0])){
         if (!brutePrioritySwap(processes[0])) {
-          console.log("Enviando processo de prioridade para a fila suspensos de prioridade");
+          if (infoMode) Interface.log(`O processo ${processes[0].name} chegou na fila de suspensos com prioridade em t = ${simulatorTime}.`);
+          Interface.log(`O processo ${processes[0].name} saiu do estado "Novo" para "Suspenso".`);
+          suspendedPriority.push(processes[0]);
         }
       }
 
@@ -612,6 +626,7 @@ var Interface = {
   outputR3Q: document.getElementById('ready3'),
   outputBQ: document.getElementById('blocked'),
   outputSQ: document.getElementById('suspended'),
+  outputSPQ: document.getElementById('suspended_priority'),
   outputSBQ: document.getElementById('suspended_blocked'),
   updateQueues: function() {
     Interface._updateQueue(priorityQueue, Interface.outputPQ);
@@ -619,6 +634,7 @@ var Interface = {
     Interface._updateQueue(ready2, Interface.outputR2Q);
     Interface._updateQueue(ready3, Interface.outputR3Q);
     Interface._updateQueue(suspended, Interface.outputSQ);
+    Interface._updateQueue(suspendedPriority, Interface.outputSPQ);
     Interface._updateQueue(blocked, Interface.outputBQ);
     Interface._updateQueue(suspendedBlocked, Interface.outputSBQ);
   },
