@@ -1,6 +1,6 @@
 t = 18s 
 objetivo: testar a fila de suspensos com prioridade
-linhas 41 - 115 do teste.txt
+linhas 45 - 115 do teste.txt
 
 0, 0, 2, 512, 0, 0
 
