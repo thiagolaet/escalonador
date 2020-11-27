@@ -2,9 +2,9 @@ t = 8s
 objetivo: Testar o swapping out de processos de prioridade 1 em execução
 linhas 37 - 43 do teste.txt
 
-0, 1, 5, 7936, 0, 0
+0, 1, 5, 8192, 0, 0
 
-0, 1, 5, 7936, 0, 0
+0, 1, 5, 8192, 0, 0
 
 2, 0, 5, 512, 0, 0
 

@@ -39,7 +39,7 @@ var finishedProcesses = [];
 var freeMemory = [
   {
   start: 0,
-  size: 16000
+  size: 16384
 }];
 var occupiedMemory = [];
 
