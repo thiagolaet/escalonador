@@ -1,5 +1,6 @@
 t = 13s
 Objetivo: Demonstrar o swapping out dos processos em fila
+linhas 19 - 35 do teste.txt
 
 0, 1, 5, 3968, 0, 0
 

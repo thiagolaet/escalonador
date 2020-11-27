@@ -1,5 +1,6 @@
 t = 29s
 Objetivo: Testar a política feedback
+linhas 0 - 17 do teste.txt
 
 0, 1, 8, 512, 0, 0
 
